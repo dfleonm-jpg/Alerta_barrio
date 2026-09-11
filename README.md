@@ -1,5 +1,82 @@
-# Alerta Barrio
+# 📍 Alerta Barrio
 
-Proyecto de seguridad y percepción de riesgo en las comunidades (Design Thinking).
+**Seguridad y percepción de riesgo en las comunidades**
 
-La aplicación web (MVP funcional) se encuentra en la rama `feature/alerta-barrio-app`.
+Aplicación web que hace realidad la propuesta de solución TIC del proyecto *Alerta Barrio*,
+desarrollada con la metodología **Design Thinking**. Permite **consultar y reportar**
+situaciones de inseguridad en las zonas de Bogotá, respondiendo a la necesidad identificada
+en la investigación: *acceder de forma clara, localizada y actualizada a la información sobre
+los riesgos de seguridad para tomar mejores decisiones al desplazarse.*
+
+> Integrantes: Daniel Felipe León Martínez · Juan Esteban Pinilla Ramírez · José Javier Pérez Bayona
+
+---
+
+## ✨ Funcionalidades (según los wireframes del MVP)
+
+La app implementa exactamente el flujo definido en el documento:
+
+1. **🗺️ Inicio / Mapa** — Mapa de la ciudad con **zonas de riesgo** y **mapa de calor**,
+   marcadores por nivel (Alto / Medio / Bajo), buscador de zona y filtro por nivel.
+2. **➕ Reportar alerta** — El ciudadano registra la **ubicación**, el **tipo de incidente**
+   (Robo, Acoso, Violencia, Poca iluminación, Otro) y el **nivel percibido**.
+3. **ℹ️ Información de zona** — Muestra el **nivel de riesgo**, la **cantidad de reportes** y
+   los **últimos incidentes** de la zona.
+4. **🔔 Alertas** — Lista los incidentes recientes o de nivel alto.
+
+### Flujo del sistema
+
+```
+Ciudadano → Reporta incidente → El sistema registra ubicación y datos →
+Analiza cantidad de reportes → Actualiza el mapa de calor →
+El usuario consulta el mapa → Recibe alerta si está cerca de una zona de riesgo
+```
+
+Los datos semilla provienen de los **resultados reales de las 10 entrevistas** del proyecto
+(San Victorino, Parque Timiza, Av. Caracas / Parque Lourdes, Estación Ricaurte, Parque El
+Tunal, Av. Jiménez, etc.). Los reportes que crees se guardan en tu navegador
+(`localStorage`) y actualizan el mapa de calor y las estadísticas en tiempo real.
+
+---
+
+## 🚀 Cómo ejecutarla
+
+No requiere instalación ni dependencias. Necesita servirse por HTTP (los módulos ES no
+cargan con `file://`):
+
+```bash
+# Con Python
+python3 -m http.server 8080
+
+# o con Node
+npx serve .
+```
+
+Luego abre <http://localhost:8080> en el navegador. También funciona publicándola en
+**GitHub Pages** (rama con este contenido → Settings → Pages).
+
+El botón **↺** de la barra superior restablece los datos de demostración.
+
+---
+
+## 🧱 Arquitectura
+
+Aplicación **sin frameworks ni dependencias** (HTML + CSS + JavaScript con módulos ES),
+pensada para funcionar completamente **offline**. El mapa es un **SVG dibujado a mano**
+(no usa tiles externos), por lo que no depende de ninguna conexión.
+
+```
+index.html          → punto de entrada y splash
+src/
+  main.js           → router por hash + vistas (Mapa, Reportar, Zona, Alertas)
+  map.js            → mapa esquemático en SVG con mapa de calor y marcadores
+  data.js           → modelo de datos, datos semilla y persistencia (localStorage)
+  utils.js          → utilidades (tiempo relativo, helpers de DOM)
+  styles.css        → estilos mobile-first
+```
+
+## 📌 Alcance
+
+Tal como se define en la propuesta, la aplicación **no pretende resolver la inseguridad**,
+sino **centralizar y facilitar el acceso** a la información para que las personas tomen
+decisiones más informadas sobre sus desplazamientos.

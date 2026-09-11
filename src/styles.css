@@ -1,0 +1,227 @@
+/* ==========================================================================
+   Alerta Barrio — estilos (mobile-first, sin dependencias)
+   Paleta inspirada en los wireframes del proyecto (azules suaves + acentos).
+   ========================================================================== */
+:root {
+  --brand: #2b4c7e;
+  --brand-2: #3f6ea5;
+  --bg: #f4f6fb;
+  --surface: #ffffff;
+  --surface-2: #eef3fb;
+  --text: #1c2733;
+  --muted: #6b7683;
+  --border: #e2e8f2;
+  --alto: #e53935;
+  --medio: #fb8c00;
+  --bajo: #43a047;
+  --radius: 16px;
+  --shadow: 0 6px 20px rgba(31, 45, 61, 0.08);
+  --shadow-sm: 0 2px 8px rgba(31, 45, 61, 0.06);
+  --maxw: 480px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #dde3ee;
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.45;
+}
+
+#app { min-height: 100vh; }
+
+/* ------------------------- Splash ------------------------- */
+.splash {
+  min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px; text-align: center; padding: 24px;
+  background: linear-gradient(160deg, var(--brand), #1d3557);
+  color: #fff;
+}
+.splash-logo { font-size: 56px; }
+.splash-name { font-size: 28px; font-weight: 800; letter-spacing: .3px; }
+.splash-tag { opacity: .85; max-width: 300px; }
+
+/* ------------------------- Shell / layout ------------------------- */
+.shell {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--bg);
+  display: flex; flex-direction: column;
+  position: relative;
+  box-shadow: 0 0 40px rgba(0,0,0,.12);
+}
+
+.appbar {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--brand);
+  color: #fff;
+}
+.appbar-brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 18px; }
+.appbar-pin { font-size: 20px; }
+.appbar-reset {
+  background: rgba(255,255,255,.15); color: #fff; border: none;
+  width: 34px; height: 34px; border-radius: 50%; font-size: 18px; cursor: pointer;
+}
+.appbar-reset:hover { background: rgba(255,255,255,.28); }
+
+.content { flex: 1; padding: 16px 16px 96px; }
+
+.view-head h1 { font-size: 22px; margin: 4px 0 2px; }
+.section-title { font-size: 15px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin: 22px 0 10px; }
+.muted { color: var(--muted); }
+.empty { text-align: center; padding: 24px 0; }
+
+/* ------------------------- Bottom nav ------------------------- */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: var(--maxw);
+  display: flex; justify-content: space-around;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+  z-index: 30;
+}
+.nav-item {
+  flex: 1; background: none; border: none; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  color: var(--muted); font-size: 11px; padding: 4px;
+}
+.nav-icon { font-size: 20px; }
+.nav-item.is-active { color: var(--brand); font-weight: 700; }
+
+/* ------------------------- Search + chips ------------------------- */
+.search {
+  width: 100%; padding: 12px 14px; margin: 12px 0;
+  border: 1px solid var(--border); border-radius: 12px;
+  background: var(--surface); font-size: 15px;
+}
+.search:focus { outline: 2px solid var(--brand-2); outline-offset: 1px; }
+
+.legend { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 4px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 999px; padding: 6px 12px; font-size: 13px; cursor: pointer;
+}
+.chip.is-active { border-color: var(--brand); background: var(--surface-2); font-weight: 600; }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+/* ------------------------- Map ------------------------- */
+.map-box {
+  width: 100%; aspect-ratio: 1 / 1; border-radius: var(--radius);
+  overflow: hidden; box-shadow: var(--shadow); background: #eef2f6;
+}
+.map-box--mini { aspect-ratio: 16 / 10; margin-bottom: 12px; }
+.map-svg { width: 100%; height: 100%; display: block; }
+.map-marker { transition: transform .1s ease; transform-origin: center; }
+.map-marker:hover, .map-marker:focus { transform: scale(1.25); outline: none; }
+
+/* ------------------------- Zone list ------------------------- */
+.zone-list { display: flex; flex-direction: column; gap: 10px; }
+.zone-card {
+  display: flex; align-items: center; gap: 12px; text-align: left;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 12px 14px; cursor: pointer; width: 100%;
+  box-shadow: var(--shadow-sm);
+}
+.zone-card:hover { border-color: var(--brand-2); }
+.zone-badge {
+  color: #fff; font-size: 11px; font-weight: 700; text-transform: uppercase;
+  padding: 4px 8px; border-radius: 8px; min-width: 52px; text-align: center;
+}
+.zone-card-body { flex: 1; display: flex; flex-direction: column; }
+.zone-card-name { font-weight: 600; }
+.zone-card-meta { font-size: 13px; }
+.zone-card-chevron { font-size: 22px; color: var(--muted); }
+
+/* ------------------------- Report form ------------------------- */
+.field { display: block; margin: 16px 0; }
+.field-label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 14px; }
+.field-input {
+  width: 100%; padding: 12px 14px; border: 1px solid var(--border);
+  border-radius: 12px; background: var(--surface); font-size: 15px; font-family: inherit;
+}
+.field-input:focus { outline: 2px solid var(--brand-2); outline-offset: 1px; }
+
+.options { display: flex; flex-direction: column; gap: 8px; }
+.option {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 14px; cursor: pointer;
+}
+.option input { width: 18px; height: 18px; accent-color: var(--brand); }
+
+.level-pills { display: flex; gap: 10px; }
+.pill {
+  flex: 1; padding: 12px; border-radius: 12px; cursor: pointer; font-weight: 600;
+  border: 2px solid var(--border); background: var(--surface); color: var(--text);
+}
+.pill.is-active { border-color: var(--pill); background: color-mix(in srgb, var(--pill) 14%, white); color: var(--pill); }
+
+.form-feedback { min-height: 20px; margin: 6px 0; font-size: 14px; }
+.form-feedback.is-error { color: var(--alto); font-weight: 600; }
+
+/* ------------------------- Buttons ------------------------- */
+.btn-primary {
+  background: var(--brand); color: #fff; border: none; cursor: pointer;
+  padding: 14px 18px; border-radius: 12px; font-size: 15px; font-weight: 600;
+}
+.btn-primary:hover { background: var(--brand-2); }
+.btn-block { width: 100%; margin-top: 8px; }
+.btn-ghost {
+  background: transparent; color: var(--brand); border: 1px solid var(--border);
+  padding: 12px 18px; border-radius: 12px; cursor: pointer; font-weight: 600;
+}
+.back-link { background: none; border: none; color: var(--brand); cursor: pointer; font-size: 15px; padding: 4px 0 8px; }
+
+/* ------------------------- Success ------------------------- */
+.success-card { text-align: center; padding: 32px 16px; }
+.success-icon { font-size: 56px; }
+.success-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+
+/* ------------------------- Zone view ------------------------- */
+.risk-banner {
+  display: flex; align-items: center; gap: 10px;
+  background: color-mix(in srgb, var(--risk) 10%, white);
+  border: 1px solid color-mix(in srgb, var(--risk) 30%, white);
+  border-radius: 12px; padding: 12px 14px; margin: 6px 0 14px; font-size: 15px;
+}
+.risk-dot { width: 12px; height: 12px; border-radius: 50%; }
+.stat-row { display: flex; gap: 12px; margin-bottom: 14px; }
+.stat { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px; text-align: center; box-shadow: var(--shadow-sm); }
+.stat-value { font-size: 30px; font-weight: 800; color: var(--brand); }
+.stat-label { font-size: 12px; }
+.zone-desc { background: var(--surface-2); border-radius: 12px; padding: 14px; margin: 4px 0 4px; }
+
+/* ------------------------- Incidents ------------------------- */
+.incident-list, .alert-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.incident { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; box-shadow: var(--shadow-sm); }
+.incident-icon { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; font-size: 18px; flex-shrink: 0; }
+.incident-body { flex: 1; display: flex; flex-direction: column; }
+.incident-title { font-weight: 600; }
+.incident-note { font-size: 13px; }
+.incident-time { font-size: 12px; white-space: nowrap; }
+
+/* ------------------------- Alerts ------------------------- */
+.alert-card { display: flex; align-items: stretch; gap: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 12px 12px 0; cursor: pointer; box-shadow: var(--shadow-sm); overflow: hidden; }
+.alert-card:hover { border-color: var(--brand-2); }
+.alert-bar { width: 6px; border-radius: 6px; flex-shrink: 0; }
+.alert-body { flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 2px 0; }
+.alert-title { font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.alert-emoji { font-size: 16px; }
+.alert-meta { font-size: 12px; }
+.alert-note { font-size: 13px; }
+
+/* ------------------------- Desktop niceties ------------------------- */
+@media (min-width: 520px) {
+  .shell { margin-top: 20px; margin-bottom: 20px; min-height: calc(100vh - 40px); border-radius: 24px; overflow: hidden; }
+  .bottom-nav { border-radius: 0 0 24px 24px; }
+}

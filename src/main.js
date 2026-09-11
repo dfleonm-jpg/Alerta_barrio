@@ -6,14 +6,17 @@ import {
   riskForZone, addIncident, getActiveAlerts, resetData,
   INCIDENT_TYPES, RISK_LEVELS, typeMeta,
 } from './data.js';
-import { renderMap } from './map.js';
+import { renderMap, nearestZone } from './map.js';
+import { recommendRoutes } from './routes.js';
 import { timeAgo, esc, el } from './utils.js';
 
 const app = document.getElementById('app');
 let mapFilter = 'all'; // filtro de nivel en la vista de mapa
+// Ubicación simulada del usuario (para las alertas de proximidad).
+let userLocationZoneId = null;
 
 // ---------------------------------------------------------------------------
-// Router (#/mapa, #/reportar, #/zona/:id, #/alertas)
+// Router (#/mapa, #/reportar, #/zona/:id, #/alertas, #/rutas)
 // ---------------------------------------------------------------------------
 function parseRoute() {
   const hash = location.hash.replace(/^#\/?/, '');
@@ -31,6 +34,7 @@ function render() {
   switch (name) {
     case 'reportar': view = ReportView(param); active = 'reportar'; break;
     case 'zona':     view = ZoneView(param);   active = 'mapa';     break;
+    case 'rutas':    view = RoutesView();       active = 'rutas';    break;
     case 'alertas':  view = AlertsView();       active = 'alertas';  break;
     case 'mapa':
     default:         view = MapView();          active = 'mapa';     break;
@@ -80,6 +84,7 @@ function BottomNav(active) {
 
   return el('nav', { class: 'bottom-nav' }, [
     item('mapa', '🗺️', 'Mapa'),
+    item('rutas', '🧭', 'Rutas'),
     item('reportar', '➕', 'Reportar'),
     item('alertas', '🔔', 'Alertas'),
   ]);
@@ -105,10 +110,16 @@ function MapView() {
   ]);
 
   const list = el('div', { class: 'zone-list' });
+  const proximityHost = el('div');
 
   const paint = () => {
-    renderMap(mapBox, (zoneId) => navigate(`zona/${zoneId}`), mapFilter);
+    const userZone = userLocationZoneId ? getZone(userLocationZoneId) : null;
+    renderMap(mapBox, (zoneId) => navigate(`zona/${zoneId}`), {
+      filterLevel: mapFilter,
+      userPoint: userZone ? { x: userZone.x, y: userZone.y } : null,
+    });
     paintList(list, search.value);
+    renderProximity(proximityHost);
   };
 
   search.addEventListener('input', () => paintList(list, search.value));
@@ -118,6 +129,8 @@ function MapView() {
       el('h1', {}, 'Mapa de la ciudad'),
       el('p', { class: 'muted' }, 'Zonas de riesgo y mapa de calor según los reportes de la comunidad.'),
     ]),
+    proximityHost,
+    LocationPicker(() => paint()),
     search,
     mapBox,
     legend,
@@ -387,6 +400,180 @@ function AlertsView() {
     )
   );
   return wrap;
+}
+
+// ---------------------------------------------------------------------------
+// Ubicación simulada + alertas de proximidad
+// ---------------------------------------------------------------------------
+function LocationPicker(onChange) {
+  const select = el('select', { class: 'field-input loc-select', 'aria-label': 'Mi ubicación' }, [
+    el('option', { value: '' }, '📍 Simular mi ubicación…'),
+    ...getZones().map((z) =>
+      el('option', { value: z.id, ...(z.id === userLocationZoneId ? { selected: 'selected' } : {}) }, z.name)
+    ),
+  ]);
+  select.addEventListener('change', () => {
+    userLocationZoneId = select.value || null;
+    onChange && onChange();
+  });
+  return el('div', { class: 'loc-picker' }, [select]);
+}
+
+// Umbral de proximidad (en unidades del mapa 0..100).
+const PROXIMITY_RADIUS = 18;
+
+function renderProximity(host) {
+  host.innerHTML = '';
+  if (!userLocationZoneId) return;
+  const userZone = getZone(userLocationZoneId);
+  if (!userZone) return;
+
+  const { zone, distance } = nearestZone({ x: userZone.x, y: userZone.y });
+  // Evalúa el riesgo de la propia zona del usuario.
+  const own = riskForZone(userZone.id);
+  // Y busca la zona de alto riesgo más cercana dentro del radio.
+  let nearbyHigh = null;
+  let nearbyD = Infinity;
+  for (const z of getZones()) {
+    if (z.id === userZone.id) continue;
+    const d = Math.hypot(z.x - userZone.x, z.y - userZone.y);
+    const r = riskForZone(z.id);
+    if (r.level.id === 'alto' && d <= PROXIMITY_RADIUS && d < nearbyD) {
+      nearbyD = d; nearbyHigh = { zone: z, risk: r };
+    }
+  }
+
+  if (own.level.id === 'alto') {
+    host.appendChild(ProximityBanner('alto',
+      `Estás en una zona de riesgo ALTO: ${userZone.name}. Mantente atento y evita mostrar objetos de valor.`,
+      userZone.id));
+  } else if (nearbyHigh) {
+    host.appendChild(ProximityBanner('alto',
+      `Cerca de una zona de riesgo alto: ${nearbyHigh.zone.name}. Considera una ruta más segura.`,
+      nearbyHigh.zone.id));
+  } else if (own.level.id === 'medio') {
+    host.appendChild(ProximityBanner('medio',
+      `Tu zona (${userZone.name}) tiene un riesgo medio. Precaución al desplazarte.`,
+      userZone.id));
+  } else {
+    host.appendChild(ProximityBanner('bajo',
+      `Tu zona (${userZone.name}) se percibe con riesgo bajo por ahora.`,
+      userZone.id));
+  }
+}
+
+function ProximityBanner(level, text, zoneId) {
+  const color = RISK_LEVELS[level].color;
+  const icon = level === 'alto' ? '🔴' : level === 'medio' ? '🟠' : '🟢';
+  return el('div', {
+    class: 'proximity-banner', style: `--risk:${color}`,
+    onclick: () => zoneId && navigate(`zona/${zoneId}`),
+    role: 'button', tabindex: '0',
+  }, [
+    el('span', { class: 'proximity-icon' }, icon),
+    el('span', { class: 'proximity-text' }, text),
+  ]);
+}
+
+// ---------------------------------------------------------------------------
+// Vista 5 — Rutas seguras
+// ---------------------------------------------------------------------------
+function RoutesView() {
+  const wrap = el('div', { class: 'view view-routes' });
+  const zones = getZones();
+  const state = { from: userLocationZoneId || zones[0].id, to: '' };
+
+  const buildSelect = (label, key, includeEmpty) => {
+    const sel = el('select', { class: 'field-input', 'aria-label': label }, [
+      includeEmpty ? el('option', { value: '' }, 'Selecciona el destino…') : null,
+      ...zones.map((z) =>
+        el('option', { value: z.id, ...(z.id === state[key] ? { selected: 'selected' } : {}) },
+          `${z.name} (${z.localidad})`)
+    ),
+    ].filter(Boolean));
+    sel.addEventListener('change', () => { state[key] = sel.value; update(); });
+    return sel;
+  };
+
+  const mapBox = el('div', { class: 'map-box' });
+  const result = el('div', { class: 'route-result' });
+
+  const update = () => {
+    if (!state.to || !state.from) {
+      renderMap(mapBox, (id) => navigate(`zona/${id}`), 'all');
+      result.innerHTML = '';
+      result.appendChild(el('p', { class: 'muted' }, 'Elige un origen y un destino para ver la ruta más segura.'));
+      return;
+    }
+    const rec = recommendRoutes(state.from, state.to);
+    if (rec.error) {
+      renderMap(mapBox, (id) => navigate(`zona/${id}`), 'all');
+      result.innerHTML = '';
+      result.appendChild(el('p', { class: 'muted' }, rec.error));
+      return;
+    }
+    // Dibuja la ruta segura sobre el mapa.
+    renderMap(mapBox, (id) => navigate(`zona/${id}`), {
+      filterLevel: 'all', routePath: rec.safe.path, highlight: rec.safe.path,
+    });
+    paintRouteResult(result, rec, zones);
+  };
+
+  wrap.append(
+    el('div', { class: 'view-head' }, [
+      el('h1', {}, 'Rutas seguras'),
+      el('p', { class: 'muted' }, 'Te sugerimos el recorrido que evita las zonas de mayor riesgo.'),
+    ]),
+    el('label', { class: 'field' }, [ el('span', { class: 'field-label' }, '🟢 Origen'), buildSelect('Origen', 'from', false) ]),
+    el('label', { class: 'field' }, [ el('span', { class: 'field-label' }, '🏁 Destino'), buildSelect('Destino', 'to', true) ]),
+    mapBox,
+    result,
+  );
+
+  setTimeout(update, 0);
+  return wrap;
+}
+
+function paintRouteResult(container, rec, zones) {
+  const byId = new Map(zones.map((z) => [z.id, z]));
+  container.innerHTML = '';
+
+  const { safe, saferBy, longerBy, sameRoute } = rec;
+  const avgLevel =
+    safe.avgRisk >= 7 ? RISK_LEVELS.alto : safe.avgRisk >= 4 ? RISK_LEVELS.medio : RISK_LEVELS.bajo;
+
+  // Resumen.
+  container.appendChild(
+    el('div', { class: 'route-summary', style: `--risk:${avgLevel.color}` }, [
+      el('div', { class: 'route-summary-head' }, [
+        el('span', { class: 'risk-dot', style: `background:${avgLevel.color}` }),
+        el('strong', {}, `Ruta recomendada · riesgo ${avgLevel.label.toLowerCase()}`),
+      ]),
+      el('p', { class: 'muted' },
+        sameRoute
+          ? 'La ruta más directa ya es también la más segura disponible.'
+          : `Esta ruta reduce el riesgo promedio ${saferBy.toFixed(1)} puntos${longerBy > 0.5 ? `, con un pequeño rodeo` : ''} frente a la más directa.`),
+    ])
+  );
+
+  // Pasos.
+  container.appendChild(el('h2', { class: 'section-title' }, `Recorrido (${safe.path.length} zonas)`));
+  container.appendChild(
+    el('ol', { class: 'route-steps' },
+      safe.path.map((id, i) => {
+        const z = byId.get(id);
+        const r = riskForZone(id);
+        const isEnd = i === 0 || i === safe.path.length - 1;
+        return el('li', { class: `route-step${isEnd ? ' is-end' : ''}`, onclick: () => navigate(`zona/${id}`) }, [
+          el('span', { class: 'route-step-dot', style: `background:${r.level.color}` }),
+          el('span', { class: 'route-step-body' }, [
+            el('span', { class: 'route-step-name' }, z ? z.name : id),
+            el('span', { class: 'route-step-meta muted' }, `${z ? z.localidad : ''} · riesgo ${r.level.label.toLowerCase()}`),
+          ]),
+        ]);
+      })
+    )
+  );
 }
 
 // ---------------------------------------------------------------------------

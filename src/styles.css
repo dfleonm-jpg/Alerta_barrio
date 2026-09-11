@@ -225,3 +225,55 @@ html, body {
   .shell { margin-top: 20px; margin-bottom: 20px; min-height: calc(100vh - 40px); border-radius: 24px; overflow: hidden; }
   .bottom-nav { border-radius: 0 0 24px 24px; }
 }
+
+
+/* ------------------------- Ubicación + proximidad ------------------------- */
+.loc-picker { margin: 12px 0 0; }
+.loc-select { background: var(--surface-2); }
+
+.proximity-banner {
+  display: flex; align-items: center; gap: 10px;
+  background: color-mix(in srgb, var(--risk) 12%, white);
+  border: 1px solid color-mix(in srgb, var(--risk) 35%, white);
+  border-left: 5px solid var(--risk);
+  border-radius: 12px; padding: 12px 14px; margin: 12px 0 0;
+  cursor: pointer; font-size: 14px;
+}
+.proximity-banner:hover { background: color-mix(in srgb, var(--risk) 18%, white); }
+.proximity-icon { font-size: 18px; }
+.proximity-text { flex: 1; }
+
+/* ------------------------- Marcador de usuario / ruta ------------------------- */
+.user-loc circle:first-child { animation: pulse 1.8s ease-out infinite; transform-origin: center; }
+@keyframes pulse { 0% { opacity: .35; } 70% { opacity: .08; } 100% { opacity: .35; } }
+.route-line { animation: dash 1s linear infinite; }
+@keyframes dash { to { stroke-dashoffset: -5; } }
+
+/* ------------------------- Vista de rutas ------------------------- */
+.route-result { margin-top: 14px; }
+.route-summary {
+  background: color-mix(in srgb, var(--risk) 9%, white);
+  border: 1px solid color-mix(in srgb, var(--risk) 28%, white);
+  border-radius: 14px; padding: 14px; margin-bottom: 4px;
+}
+.route-summary-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.route-summary p { margin: 4px 0 0; font-size: 14px; }
+
+.route-steps { list-style: none; margin: 0; padding: 0; position: relative; }
+.route-steps::before {
+  content: ''; position: absolute; left: 13px; top: 12px; bottom: 12px;
+  width: 2px; background: var(--border);
+}
+.route-step {
+  display: flex; align-items: center; gap: 12px; padding: 8px 6px; cursor: pointer;
+  position: relative;
+}
+.route-step:hover .route-step-name { color: var(--brand); }
+.route-step-dot {
+  width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;
+  border: 3px solid var(--bg); z-index: 1; margin-left: 6px;
+}
+.route-step.is-end .route-step-dot { width: 18px; height: 18px; margin-left: 4px; box-shadow: 0 0 0 2px var(--brand); }
+.route-step-body { display: flex; flex-direction: column; }
+.route-step-name { font-weight: 600; }
+.route-step-meta { font-size: 12px; }

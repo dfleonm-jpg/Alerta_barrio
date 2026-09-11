@@ -67,11 +67,20 @@ function drawHeat(svg, zones) {
  * Renderiza el mapa dentro de `container`.
  * @param {HTMLElement} container
  * @param {(zoneId:string)=>void} onSelect  callback al tocar una zona
- * @param {string} filterLevel  'all' | 'alto' | 'medio' | 'bajo'
+ * @param {string|object} opts  Filtro de nivel ('all'|'alto'|'medio'|'bajo')
+ *   o un objeto de opciones:
+ *   { filterLevel, routePath: string[], userPoint: {x,y}, highlight: string[] }
  */
-export function renderMap(container, onSelect, filterLevel = 'all') {
+export function renderMap(container, onSelect, opts = 'all') {
+  const options = typeof opts === 'string' ? { filterLevel: opts } : (opts || {});
+  const filterLevel = options.filterLevel || 'all';
+  const routePath = options.routePath || null;
+  const userPoint = options.userPoint || null;
+  const highlight = new Set(options.highlight || []);
+
   container.innerHTML = '';
   const zones = getZones();
+  const byId = new Map(zones.map((z) => [z.id, z]));
 
   const svg = svgEl('svg', {
     viewBox: '0 0 100 100',
@@ -91,10 +100,27 @@ export function renderMap(container, onSelect, filterLevel = 'all') {
   drawBackground(svg);
   drawHeat(svg, zones);
 
+  // Ruta recomendada (polilínea que une las zonas del camino).
+  if (routePath && routePath.length > 1) {
+    const pts = routePath.map((id) => byId.get(id)).filter(Boolean);
+    const d = pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+    // Trazo blanco de fondo para dar contraste.
+    svg.appendChild(svgEl('path', {
+      d, fill: 'none', stroke: '#ffffff', 'stroke-width': 2.6,
+      'stroke-linecap': 'round', 'stroke-linejoin': 'round',
+    }));
+    // Trazo azul de la ruta.
+    svg.appendChild(svgEl('path', {
+      d, fill: 'none', stroke: '#2b4c7e', 'stroke-width': 1.4,
+      'stroke-linecap': 'round', 'stroke-linejoin': 'round',
+      'stroke-dasharray': '3 2', class: 'route-line',
+    }));
+  }
+
   // Marcadores.
   for (const z of zones) {
     const { level } = riskForZone(z.id);
-    if (filterLevel !== 'all' && level.id !== filterLevel) continue;
+    if (filterLevel !== 'all' && level.id !== filterLevel && !highlight.has(z.id)) continue;
 
     const g = svgEl('g', { class: 'map-marker', tabindex: '0', role: 'button',
       'aria-label': `${z.name}, riesgo ${level.label}` });
@@ -116,6 +142,14 @@ export function renderMap(container, onSelect, filterLevel = 'all') {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(); }
     });
 
+    // Resalta las zonas de la ruta o las marcadas.
+    if (highlight.has(z.id)) {
+      g.insertBefore(
+        svgEl('circle', { cx: z.x, cy: z.y - 4, r: 5.2, fill: 'none', stroke: level.color, 'stroke-width': 0.9, opacity: 0.9 }),
+        g.firstChild
+      );
+    }
+
     // Tooltip nativo.
     const title = svgEl('title');
     title.textContent = `${z.name} — ${countByZone(z.id)} reportes`;
@@ -124,5 +158,26 @@ export function renderMap(container, onSelect, filterLevel = 'all') {
     svg.appendChild(g);
   }
 
+  // Marcador de "mi ubicación" (punto azul pulsante).
+  if (userPoint) {
+    const u = svgEl('g', { class: 'user-loc' });
+    u.appendChild(svgEl('circle', { cx: userPoint.x, cy: userPoint.y, r: 4.5, fill: '#1e88e5', opacity: 0.18 }));
+    u.appendChild(svgEl('circle', { cx: userPoint.x, cy: userPoint.y, r: 2, fill: '#1e88e5', stroke: '#fff', 'stroke-width': 0.7 }));
+    const t = svgEl('title'); t.textContent = 'Mi ubicación'; u.appendChild(t);
+    svg.appendChild(u);
+  }
+
   container.appendChild(svg);
+}
+
+// Utilidad: encuentra la zona más cercana a un punto {x,y} y su distancia.
+export function nearestZone(point) {
+  const zones = getZones();
+  let best = null;
+  let bestD = Infinity;
+  for (const z of zones) {
+    const d = Math.hypot(z.x - point.x, z.y - point.y);
+    if (d < bestD) { bestD = d; best = z; }
+  }
+  return { zone: best, distance: bestD };
 }

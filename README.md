@@ -24,6 +24,17 @@ La app implementa exactamente el flujo definido en el documento:
    los **últimos incidentes** de la zona.
 4. **🔔 Alertas** — Lista los incidentes recientes o de nivel alto.
 
+### Funcionalidades complementarias (propuesta TIC)
+
+5. **🧭 Rutas seguras** — Recomienda el recorrido entre dos zonas que **evita las de mayor
+   riesgo**. Calcula la ruta con un algoritmo tipo Dijkstra sobre un grafo de zonas, donde
+   el costo combina la distancia con una **penalización por nivel de riesgo**. Dibuja la
+   ruta sobre el mapa, la desglosa por pasos y la **compara** con la ruta más directa
+   (cuánto baja el riesgo y cuánto se alarga el recorrido).
+6. **📍 Alertas de proximidad** — Puedes *simular tu ubicación* y la app te **avisa** si
+   estás en (o cerca de) una zona de riesgo alto, con un banner destacado en el mapa y un
+   marcador pulsante de "mi ubicación".
+
 ### Flujo del sistema
 
 ```
@@ -68,8 +79,9 @@ pensada para funcionar completamente **offline**. El mapa es un **SVG dibujado a
 ```
 index.html          → punto de entrada y splash
 src/
-  main.js           → router por hash + vistas (Mapa, Reportar, Zona, Alertas)
-  map.js            → mapa esquemático en SVG con mapa de calor y marcadores
+  main.js           → router por hash + vistas (Mapa, Rutas, Reportar, Zona, Alertas)
+  map.js            → mapa esquemático en SVG: mapa de calor, marcadores, ruta y ubicación
+  routes.js         → motor de rutas seguras (grafo de zonas + Dijkstra ponderado por riesgo)
   data.js           → modelo de datos, datos semilla y persistencia (localStorage)
   utils.js          → utilidades (tiempo relativo, helpers de DOM)
   styles.css        → estilos mobile-first

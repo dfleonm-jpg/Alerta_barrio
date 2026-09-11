@@ -15,6 +15,15 @@ let mapFilter = 'all'; // filtro de nivel en la vista de mapa
 // Ubicación simulada del usuario (para las alertas de proximidad).
 let userLocationZoneId = null;
 
+// Iconos SVG inline (siempre se renderizan, aunque el dispositivo no tenga emojis).
+const ICONS = {
+  pin: '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5Z"/></svg>',
+  map: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 4-6 2v14l6-2 6 2 6-2V4l-6 2-6-2Z"/><path d="M9 4v14M15 6v14"/></svg>',
+  route: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2.4"/><circle cx="18" cy="5" r="2.4"/><path d="M8.4 19H14a3.5 3.5 0 0 0 0-7H10a3.5 3.5 0 0 1 0-7h5.6"/></svg>',
+  plus: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>',
+  bell: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>',
+};
+
 // ---------------------------------------------------------------------------
 // Router (#/mapa, #/reportar, #/zona/:id, #/alertas, #/rutas)
 // ---------------------------------------------------------------------------
@@ -54,39 +63,40 @@ function render() {
 // Componentes de chrome (header + nav inferior)
 // ---------------------------------------------------------------------------
 function Header() {
-  return el('header', { class: 'appbar' }, [
-    el('div', { class: 'appbar-brand' }, [
-      el('span', { class: 'appbar-pin' }, '📍'),
-      el('span', {}, 'Alerta Barrio'),
-    ]),
-    el('button', {
-      class: 'appbar-reset', title: 'Restablecer datos de demostración',
-      onclick: () => {
-        if (confirm('¿Restablecer los datos de demostración? Se perderán tus reportes locales.')) {
-          resetData();
-          navigate('mapa');
-          render();
-        }
-      },
-    }, '↺'),
-  ]);
+  const brand = el('div', { class: 'appbar-brand' });
+  brand.innerHTML = ICONS.pin + '<span>Alerta Barrio</span>';
+  const header = el('header', { class: 'appbar' }, [brand]);
+  const reset = el('button', {
+    class: 'appbar-reset', title: 'Restablecer datos de demostración',
+    onclick: () => {
+      if (confirm('¿Restablecer los datos de demostración? Se perderán tus reportes locales.')) {
+        resetData();
+        navigate('mapa');
+        render();
+      }
+    },
+  }, '↺');
+  header.appendChild(reset);
+  return header;
 }
 
 function BottomNav(active) {
-  const item = (id, icon, label) =>
-    el('button', {
+  const item = (id, iconSvg, label) => {
+    const btn = el('button', {
       class: `nav-item${active === id ? ' is-active' : ''}`,
       onclick: () => navigate(id === 'reportar' ? 'reportar' : id),
-    }, [
-      el('span', { class: 'nav-icon' }, icon),
-      el('span', { class: 'nav-label' }, label),
-    ]);
+    });
+    const ic = el('span', { class: 'nav-icon' });
+    ic.innerHTML = iconSvg;
+    btn.append(ic, el('span', { class: 'nav-label' }, label));
+    return btn;
+  };
 
   return el('nav', { class: 'bottom-nav' }, [
-    item('mapa', '🗺️', 'Mapa'),
-    item('rutas', '🧭', 'Rutas'),
-    item('reportar', '➕', 'Reportar'),
-    item('alertas', '🔔', 'Alertas'),
+    item('mapa', ICONS.map, 'Mapa'),
+    item('rutas', ICONS.route, 'Rutas'),
+    item('reportar', ICONS.plus, 'Reportar'),
+    item('alertas', ICONS.bell, 'Alertas'),
   ]);
 }
 

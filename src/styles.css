@@ -277,3 +277,10 @@ html, body {
 .route-step-body { display: flex; flex-direction: column; }
 .route-step-name { font-weight: 600; }
 .route-step-meta { font-size: 12px; }
+
+
+/* ------------------------- Iconos SVG (nav + marca) ------------------------- */
+.appbar-brand svg { flex-shrink: 0; }
+.nav-icon { display: inline-flex; align-items: center; justify-content: center; height: 24px; }
+.nav-icon svg { display: block; }
+.nav-item.is-active .nav-icon { color: var(--brand); }

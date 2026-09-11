@@ -52,19 +52,28 @@ Tunal, Av. Jiménez, etc.). Los reportes que crees se guardan en tu navegador
 
 ## 🚀 Cómo ejecutarla
 
-No requiere instalación ni dependencias. Necesita servirse por HTTP (los módulos ES no
-cargan con `file://`):
+**La forma más simple:** abre el archivo **`index.html`** con doble clic. La app es
+totalmente autocontenida (todo el HTML, CSS y JavaScript va embebido en ese único archivo),
+así que **no necesita servidor ni instalación** y funciona sin conexión a internet.
+
+También puedes publicarla tal cual en **GitHub Pages** (Settings → Pages) o servirla por HTTP:
 
 ```bash
-# Con Python
-python3 -m http.server 8080
-
-# o con Node
-npx serve .
+python3 -m http.server 8080   # y abrir http://localhost:8080
 ```
 
-Luego abre <http://localhost:8080> en el navegador. También funciona publicándola en
-**GitHub Pages** (rama con este contenido → Settings → Pages).
+### 🛠️ Para desarrollar
+
+El código fuente vive de forma modular y legible en `src/`. Después de editarlo, se
+regenera el `index.html` autocontenido con:
+
+```bash
+node build-standalone.mjs
+```
+
+Este script concatena los módulos de `src/`, elimina los `import`/`export` y embebe todo
+(junto con `src/styles.css`) dentro de `index.html`. Así se evita que el navegador bloquee
+los módulos ES al abrir con `file://`.
 
 El botón **↺** de la barra superior restablece los datos de demostración.
 

@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#181614">
+<meta name="description" content="Alerta Barrio — reporta incidentes en vivo (robo, acoso, etc.) por localidad en Bogotá y consulta el feed de reportes recientes.">
+<title>Alerta Barrio · Reportes en vivo</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📍</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f4f5f2; --panel:#ffffff; --panel2:#f3f1eb; --ink:#181614; --dim:#6b665d; --line:#e4e0d6;
+    --yellow:#f5c518; --yellow-dk:#d9a800; --red:#d62828; --red-dk:#a81e1e; --black:#181614; --brand:#181614;
+    --alto:#d62828; --medio:#f6a821; --bajo:#43a047;
+    --shadow:0 14px 40px rgba(24,22,20,.13); --shadow-sm:0 3px 10px rgba(24,22,20,.07);
+    --radius:16px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0; background:var(--bg); color:var(--ink);
+    font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased; line-height:1.55;}
+  a{color:inherit;}
+
+  header.site{position:sticky; top:0; z-index:15; background:rgba(255,255,255,.92); backdrop-filter:blur(8px); border-bottom:1px solid var(--line);}
+  .nav{max-width:1180px; margin:0 auto; display:flex; align-items:center; gap:18px; padding:12px 22px;}
+  .brand{display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--ink);}
+  .brand .pin{width:34px; height:34px; border-radius:9px; background:var(--red); color:#fff; display:grid; place-items:center; font-size:18px; box-shadow:var(--shadow-sm);}
+  .brand b{font-family:'Archivo Black',sans-serif; font-size:18px; letter-spacing:.4px;}
+  .nav .links{margin-left:auto; display:flex; align-items:center; gap:6px; flex-wrap:wrap;}
+  .nav .links a{text-decoration:none; color:var(--dim); font-weight:600; font-size:14px; padding:8px 13px; border-radius:8px; transition:.15s;}
+  .nav .links a:hover{color:var(--ink); background:var(--panel2);}
+  .nav .links a.active{color:#fff; background:var(--brand);}
+  .flagbar{height:6px; display:flex;}
+  .flagbar span{flex:1;} .flagbar .y{background:var(--yellow);} .flagbar .r{background:var(--red);}
+
+  .hero{background:linear-gradient(135deg,#181614,#2a2622 65%,#3a3430); color:#fff;}
+  .hero .inner{max-width:1180px; margin:0 auto; padding:48px 22px; text-align:center;}
+  .hero .badge{display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.16); padding:6px 13px; border-radius:999px; font-size:12.5px; font-weight:600; color:#f0ece3; margin-bottom:16px;}
+  .hero .badge .live{width:9px;height:9px;border-radius:50%;background:#ff4d4d; box-shadow:0 0 0 0 rgba(255,77,77,.6); animation:pulse 1.6s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,77,77,.6);}70%{box-shadow:0 0 0 8px rgba(255,77,77,0);}100%{box-shadow:0 0 0 0 rgba(255,77,77,0);}}
+  .hero h1{font-family:'Archivo Black',sans-serif; font-size:clamp(26px,4.6vw,42px); margin:0 0 12px; letter-spacing:.4px;}
+  .hero h1 .hl{color:var(--yellow);}
+  .hero p{color:#d3cec4; font-size:clamp(15px,2vw,17px); max-width:620px; margin:0 auto;}
+
+  main{max-width:1180px; margin:0 auto; padding:34px 22px 20px;}
+  .grid{display:grid; grid-template-columns:1fr 1.2fr; gap:22px; align-items:start;}
+  @media (max-width:900px){ .grid{grid-template-columns:1fr;} }
+
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:22px; box-shadow:var(--shadow-sm);}
+  .card > h2{font-family:'Archivo Black',sans-serif; font-size:17px; margin:0 0 4px; display:flex; align-items:center; gap:9px;}
+  .hint{color:var(--dim); font-size:13px; margin:0 0 16px;}
+
+  /* Form */
+  .field{margin:0 0 15px;}
+  .field label{display:block; font-size:12.5px; color:var(--dim); font-weight:600; margin:0 0 7px;}
+  .field select, .field input, .field textarea{
+    width:100%; padding:11px 12px; border:1px solid var(--line); border-radius:10px; background:var(--panel2);
+    font-family:inherit; font-size:14px; color:var(--ink);
+  }
+  .field select:focus, .field input:focus, .field textarea:focus{ outline:2px solid var(--brand); outline-offset:1px; }
+  textarea{resize:vertical; min-height:64px;}
+  .types{display:grid; grid-template-columns:repeat(3,1fr); gap:9px;}
+  .type-btn{display:flex; flex-direction:column; align-items:center; gap:4px; padding:11px 6px; border:2px solid var(--line); border-radius:11px; background:var(--panel); cursor:pointer; font-size:12px; font-weight:600; transition:.14s;}
+  .type-btn .em{font-size:20px;}
+  .type-btn:hover{border-color:var(--dim);}
+  .type-btn.active{border-color:var(--red); background:rgba(214,40,40,.06); color:var(--red);}
+  .levels{display:flex; gap:9px;}
+  .level-btn{flex:1; padding:11px; border-radius:11px; border:2px solid var(--line); background:var(--panel); cursor:pointer; font-weight:700; font-size:13px; transition:.14s;}
+  .level-btn[data-level="alto"].active{border-color:var(--alto); background:rgba(214,40,40,.08); color:var(--alto);}
+  .level-btn[data-level="medio"].active{border-color:var(--medio); background:rgba(246,168,33,.12); color:#a8720b;}
+  .level-btn[data-level="bajo"].active{border-color:var(--bajo); background:rgba(67,160,71,.1); color:var(--bajo);}
+  .submit{width:100%; background:var(--red); color:#fff; border:none; border-radius:11px; padding:13px; font-weight:700; font-size:15px; cursor:pointer; margin-top:4px; transition:.15s;}
+  .submit:hover{background:var(--red-dk);}
+  .formmsg{font-size:13px; margin-top:10px; min-height:18px;}
+  .formmsg.ok{color:var(--bajo); font-weight:600;}
+  .formmsg.err{color:var(--alto); font-weight:600;}
+
+  /* Feed */
+  .feed-head{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:6px;}
+  .feed-filters{display:flex; gap:6px; flex-wrap:wrap; margin:0 0 14px;}
+  .chip{border:1px solid var(--line); background:var(--panel); border-radius:999px; padding:6px 12px; font-size:12.5px; font-weight:600; cursor:pointer; color:var(--dim);}
+  .chip.active{background:var(--brand); color:#fff; border-color:var(--brand);}
+  .btn-reset{background:none; border:1px solid var(--line); border-radius:8px; padding:6px 11px; font-size:12px; color:var(--dim); cursor:pointer;}
+  .btn-reset:hover{color:var(--ink); background:var(--panel2);}
+  ul.feed{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:11px;}
+  .report{display:flex; gap:12px; background:var(--panel); border:1px solid var(--line); border-left-width:6px; border-radius:12px; padding:12px 14px; box-shadow:var(--shadow-sm);}
+  .report .em{width:40px; height:40px; border-radius:10px; display:grid; place-items:center; font-size:20px; flex-shrink:0; background:var(--panel2);}
+  .report .body{flex:1; min-width:0;}
+  .report .top{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;}
+  .report .ttl{font-weight:700; font-size:14.5px;}
+  .report .badge-lvl{font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.4px; padding:2px 7px; border-radius:6px; color:#fff;}
+  .report .loc{color:var(--dim); font-size:12.5px;}
+  .report .note{font-size:13.5px; margin:5px 0 0; word-break:break-word;}
+  .report .time{color:var(--dim); font-size:11.5px; margin-top:5px;}
+  .empty{color:var(--dim); font-size:13.5px; text-align:center; padding:26px 0;}
+
+  .stats-row{display:flex; gap:12px; margin:0 0 18px; flex-wrap:wrap;}
+  .stat{flex:1; min-width:90px; background:var(--panel2); border-radius:12px; padding:13px; text-align:center;}
+  .stat b{font-family:'Archivo Black',sans-serif; font-size:24px; display:block; line-height:1;}
+  .stat span{font-size:11px; color:var(--dim); text-transform:uppercase; letter-spacing:.5px;}
+
+  footer{border-top:1px solid var(--line); background:var(--panel); margin-top:44px;}
+  .foot{max-width:1180px; margin:0 auto; padding:26px 22px; display:flex; flex-wrap:wrap; gap:12px; justify-content:space-between; align-items:center; color:var(--dim); font-size:12.5px;}
+</style>
+</head>
+<body>
+<header class="site">
+  <div class="nav">
+    <a class="brand" href="index.html"><span class="pin">📍</span><b>ALERTA BARRIO</b></a>
+    <nav class="links">
+      <a href="index.html">Inicio</a>
+      <a href="alerta-barrio.html">Bogotá</a>
+      <a href="informacion.html">Chía</a>
+      <a href="reportes.html" class="active">Reportes en vivo</a>
+    </nav>
+  </div>
+</header>
+<div class="flagbar"><span class="y"></span><span class="r"></span></div>
+
+<section class="hero">
+  <div class="inner">
+    <span class="badge"><span class="live"></span> Reportes ciudadanos en vivo</span>
+    <h1>Reporta un <span class="hl">incidente</span> ahora mismo</h1>
+    <p>¿Viste un robo, un acoso o una zona insegura? Repórtalo en segundos y aparecerá al instante en el feed en vivo para alertar a tu comunidad.</p>
+  </div>
+</section>
+
+<main>
+  <div class="grid">
+    <!-- ============ Formulario ============ -->
+    <div class="card">
+      <h2>➕ Nuevo reporte</h2>
+      <p class="hint">Indica qué pasó, dónde y qué tan grave es. No incluyas datos personales.</p>
+
+      <div class="field">
+        <label for="selCiudad">Ciudad</label>
+        <select id="selCiudad"></select>
+      </div>
+      <div class="field">
+        <label for="selZona">Localidad / municipio</label>
+        <select id="selZona"></select>
+      </div>
+
+      <div class="field">
+        <label>Tipo de incidente</label>
+        <div class="types" id="types"></div>
+      </div>
+
+      <div class="field">
+        <label>Nivel de riesgo</label>
+        <div class="levels" id="levels">
+          <button type="button" class="level-btn" data-level="bajo">Bajo</button>
+          <button type="button" class="level-btn" data-level="medio">Medio</button>
+          <button type="button" class="level-btn" data-level="alto">Alto</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="txtNote">Descripción (opcional)</label>
+        <textarea id="txtNote" maxlength="240" placeholder="Ej.: Dos personas en moto robaron un celular cerca del parque..."></textarea>
+      </div>
+
+      <button class="submit" id="btnSubmit">🚨 Publicar reporte</button>
+      <div class="formmsg" id="formMsg"></div>
+    </div>
+
+    <!-- ============ Feed en vivo ============ -->
+    <div class="card">
+      <div class="feed-head">
+        <h2>🔴 Feed en vivo</h2>
+        <button class="btn-reset" id="btnReset" title="Borrar todos los reportes">Limpiar</button>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat"><b id="stTotal">0</b><span>Reportes</span></div>
+        <div class="stat"><b id="stHoy">0</b><span>Hoy</span></div>
+        <div class="stat"><b id="stAltos">0</b><span>Nivel alto</span></div>
+      </div>
+
+      <div class="feed-filters" id="filters">
+        <button class="chip active" data-f="todos">Todos</button>
+        <button class="chip" data-f="robo">🚨 Robo</button>
+        <button class="chip" data-f="acoso">⚠️ Acoso</button>
+        <button class="chip" data-f="violencia">🆘 Violencia</button>
+        <button class="chip" data-f="iluminacion">💡 Iluminación</button>
+        <button class="chip" data-f="sospechoso">👁️ Sospechoso</button>
+        <button class="chip" data-f="otro">❔ Otro</button>
+      </div>
+
+      <ul class="feed" id="feed"></ul>
+      <p class="empty" id="feedEmpty">Aún no hay reportes. ¡Sé el primero en reportar!</p>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="foot">
+    <a class="brand" href="index.html" style="text-decoration:none;"><span class="pin" style="width:28px;height:28px;font-size:15px;">📍</span><b>ALERTA BARRIO</b></a>
+    <span>Los reportes son ciudadanos y reflejan percepción; no son cifras oficiales. Se guardan localmente en tu navegador.</span>
+  </div>
+</footer>
+
+<script>
+/* ============================================================================
+   Alerta Barrio — Reportes en vivo
+   Formulario para publicar incidentes por localidad/municipio + feed en vivo
+   con filtros por tipo. Persistencia en localStorage. Sin dependencias.
+   ========================================================================== */
+
+// Zonas por ciudad (nombres alineados con las páginas de mapa)
+const ZONAS = {
+  bogota: {
+    label:'Bogotá',
+    zonas:['Usaquén','Chapinero','Santa Fe','San Cristóbal','Usme','Tunjuelito','Bosa','Kennedy','Fontibón','Engativá','Suba','Barrios Unidos','Teusaquillo','Los Mártires','Antonio Nariño','Puente Aranda','La Candelaria','Rafael Uribe Uribe','Ciudad Bolívar','Sumapaz']
+  },
+  chia: {
+    label:'Chía y vecinos',
+    zonas:['Chía','Cajicá','Cota','Sopó','Tabio','Tenjo','La Calera','Zipaquirá','Tocancipá']
+  }
+};
+
+const TIPOS = [
+  { id:'robo', label:'Robo', em:'🚨' },
+  { id:'acoso', label:'Acoso', em:'⚠️' },
+  { id:'violencia', label:'Violencia', em:'🆘' },
+  { id:'iluminacion', label:'Iluminación', em:'💡' },
+  { id:'sospechoso', label:'Sospechoso', em:'👁️' },
+  { id:'otro', label:'Otro', em:'❔' }
+];
+const LVL = {
+  alto:{ label:'Alto', color:'#d62828' },
+  medio:{ label:'Medio', color:'#f6a821' },
+  bajo:{ label:'Bajo', color:'#43a047' }
+};
+const tipoMeta = id => TIPOS.find(t=>t.id===id) || TIPOS[TIPOS.length-1];
+
+const STORAGE_KEY = 'alertaBarrio.reportes';
+let reportes = [];
+try { const raw = localStorage.getItem(STORAGE_KEY); reportes = raw ? JSON.parse(raw) : []; } catch(e){ reportes = []; }
+
+// Datos semilla si está vacío, para que el feed no nazca en blanco
+if (reportes.length === 0) {
+  const now = Date.now(), h = 3600000;
+  reportes = [
+    { id:uid(), ciudad:'bogota', zona:'Kennedy', tipo:'robo', nivel:'alto', note:'Hurto de celular a la salida del portal.', ts:now-0.4*h },
+    { id:uid(), ciudad:'bogota', zona:'Chapinero', tipo:'acoso', nivel:'medio', note:'Acoso callejero cerca de la Av. Caracas.', ts:now-1.5*h },
+    { id:uid(), ciudad:'bogota', zona:'Santa Fe', tipo:'iluminacion', nivel:'medio', note:'Varias luminarias apagadas en la cuadra.', ts:now-5*h },
+    { id:uid(), ciudad:'chia', zona:'Chía', tipo:'sospechoso', nivel:'bajo', note:'Persona merodeando vehículos en el parque principal.', ts:now-9*h }
+  ];
+  save();
+}
+
+function uid(){ return 'r_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,7); }
+function save(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(reportes)); }catch(e){ console.error(e); } }
+function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+function timeAgo(ts){
+  const diff=Date.now()-ts, m=Math.round(diff/60000);
+  if(m<1) return 'ahora mismo';
+  if(m<60) return `hace ${m} min`;
+  const hh=Math.round(m/60); if(hh<24) return `hace ${hh} h`;
+  const dd=Math.round(hh/24); return dd===1?'ayer':`hace ${dd} días`;
+}
+
+/* ---------- Selectores del formulario ---------- */
+const selCiudad=document.getElementById('selCiudad');
+const selZona=document.getElementById('selZona');
+Object.entries(ZONAS).forEach(([k,v])=>{
+  const o=document.createElement('option'); o.value=k; o.textContent=v.label; selCiudad.appendChild(o);
+});
+function fillZonas(){
+  const c=selCiudad.value; selZona.innerHTML='';
+  ZONAS[c].zonas.forEach(z=>{ const o=document.createElement('option'); o.value=z; o.textContent=z; selZona.appendChild(o); });
+}
+selCiudad.addEventListener('change', fillZonas);
+fillZonas();
+
+/* ---------- Tipos ---------- */
+let tipoSel='robo', nivelSel='medio';
+const typesBox=document.getElementById('types');
+TIPOS.forEach(t=>{
+  const b=document.createElement('button');
+  b.type='button'; b.className='type-btn'+(t.id===tipoSel?' active':''); b.dataset.tipo=t.id;
+  b.innerHTML=`<span class="em">${t.em}</span>${t.label}`;
+  b.addEventListener('click',()=>{ tipoSel=t.id; document.querySelectorAll('.type-btn').forEach(x=>x.classList.toggle('active',x.dataset.tipo===t.id)); });
+  typesBox.appendChild(b);
+});
+/* ---------- Niveles ---------- */
+function setNivel(n){ nivelSel=n; document.querySelectorAll('.level-btn').forEach(x=>x.classList.toggle('active',x.dataset.level===n)); }
+document.querySelectorAll('.level-btn').forEach(b=>b.addEventListener('click',()=>setNivel(b.dataset.level)));
+setNivel('medio');
+
+/* ---------- Publicar ---------- */
+const formMsg=document.getElementById('formMsg');
+document.getElementById('btnSubmit').addEventListener('click', ()=>{
+  const ciudad=selCiudad.value, zona=selZona.value;
+  if(!zona){ formMsg.className='formmsg err'; formMsg.textContent='Selecciona una localidad o municipio.'; return; }
+  const rep={ id:uid(), ciudad, zona, tipo:tipoSel, nivel:nivelSel, note:document.getElementById('txtNote').value.trim(), ts:Date.now() };
+  reportes.unshift(rep); save();
+  document.getElementById('txtNote').value='';
+  formMsg.className='formmsg ok'; formMsg.textContent='✔ Reporte publicado. ¡Gracias por alertar a tu comunidad!';
+  setTimeout(()=>{ formMsg.textContent=''; formMsg.className='formmsg'; }, 3500);
+  renderFeed(); renderStats();
+});
+
+/* ---------- Filtros ---------- */
+let filtro='todos';
+document.getElementById('filters').addEventListener('click', e=>{
+  const chip=e.target.closest('.chip'); if(!chip) return;
+  filtro=chip.dataset.f;
+  document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active',c===chip));
+  renderFeed();
+});
+
+/* ---------- Reset ---------- */
+document.getElementById('btnReset').addEventListener('click', ()=>{
+  if(!confirm('¿Borrar todos los reportes guardados en este navegador?')) return;
+  reportes=[]; save(); renderFeed(); renderStats();
+});
+
+/* ---------- Render feed ---------- */
+function renderFeed(){
+  const feed=document.getElementById('feed');
+  const empty=document.getElementById('feedEmpty');
+  const list=[...reportes].sort((a,b)=>b.ts-a.ts).filter(r=> filtro==='todos' || r.tipo===filtro);
+  if(list.length===0){ feed.innerHTML=''; empty.style.display='block';
+    empty.textContent = reportes.length ? 'No hay reportes de este tipo.' : 'Aún no hay reportes. ¡Sé el primero en reportar!';
+    return; }
+  empty.style.display='none';
+  feed.innerHTML=list.map(r=>{
+    const t=tipoMeta(r.tipo), lv=LVL[r.nivel]||LVL.medio;
+    const ciudad = ZONAS[r.ciudad] ? ZONAS[r.ciudad].label : '';
+    return `<li class="report" style="border-left-color:${lv.color}">
+      <div class="em">${t.em}</div>
+      <div class="body">
+        <div class="top">
+          <span class="ttl">${t.label}</span>
+          <span class="badge-lvl" style="background:${lv.color}">${lv.label}</span>
+        </div>
+        <div class="loc">📍 ${escapeHtml(r.zona)} · ${escapeHtml(ciudad)}</div>
+        ${r.note ? `<p class="note">${escapeHtml(r.note)}</p>` : ''}
+        <div class="time">🕒 ${timeAgo(r.ts)}</div>
+      </div>
+    </li>`;
+  }).join('');
+}
+
+/* ---------- Estadísticas ---------- */
+function renderStats(){
+  const startDay=new Date(); startDay.setHours(0,0,0,0);
+  document.getElementById('stTotal').textContent=reportes.length;
+  document.getElementById('stHoy').textContent=reportes.filter(r=>r.ts>=startDay.getTime()).length;
+  document.getElementById('stAltos').textContent=reportes.filter(r=>r.nivel==='alto').length;
+}
+
+/* ---------- Refresco de tiempos "hace X" ---------- */
+setInterval(renderFeed, 60000);
+
+renderFeed(); renderStats();
+</script>
+</body>
+</html>

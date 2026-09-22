@@ -4,115 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#181614">
-<meta name="description" content="Alerta Barrio — consulta y reporta la percepción de riesgo por localidad en Bogotá. Información ciudadana, clara y localizada para desplazarte mejor.">
+<meta name="description" content="Alerta Barrio — consulta y reporta la percepción de riesgo por localidad en Bogotá y Chía. Información ciudadana, clara y localizada para desplazarte mejor.">
 <title>Alerta Barrio · Seguridad y percepción de riesgo en tu comunidad</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📍</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --bg:#f4f5f2; --panel:#ffffff; --panel2:#f3f1eb; --ink:#181614; --dim:#6b665d; --line:#e4e0d6;
-    --yellow:#f5c518; --yellow-dk:#d9a800; --red:#d62828; --red-dk:#a81e1e; --black:#181614; --brand:#181614;
-    --map-yellow:#f6a821; --map-blue:#3a4fb0; --map-red:#e2543a; --map-cyan:#37a9d4;
-    --shadow:0 14px 40px rgba(24,22,20,.14); --shadow-sm:0 3px 10px rgba(24,22,20,.07);
-    --radius:16px;
-  }
-  *{box-sizing:border-box;}
-  html{scroll-behavior:smooth;}
-  body{margin:0; background:var(--bg); color:var(--ink);
-    font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-    -webkit-font-smoothing:antialiased; line-height:1.55;}
-  a{color:inherit;}
-
-  /* ---------- Header ---------- */
-  header.site{position:sticky; top:0; z-index:15; background:rgba(255,255,255,.9); backdrop-filter:blur(8px); border-bottom:1px solid var(--line);}
-  .nav{max-width:1120px; margin:0 auto; display:flex; align-items:center; gap:18px; padding:12px 20px;}
-  .brand{display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--ink);}
-  .brand .pin{width:34px; height:34px; border-radius:9px; background:var(--red); color:#fff; display:grid; place-items:center; font-size:18px; box-shadow:var(--shadow-sm);}
-  .brand b{font-family:'Archivo Black',sans-serif; font-size:18px; letter-spacing:.4px;}
-  .nav .links{margin-left:auto; display:flex; align-items:center; gap:6px;}
-  .nav .links a{text-decoration:none; color:var(--dim); font-weight:600; font-size:14px; padding:8px 13px; border-radius:8px; transition:.15s;}
-  .nav .links a:hover{color:var(--ink); background:var(--panel2);}
-  .nav .links a.active{color:#fff; background:var(--brand);}
-  .nav .links a.cta{color:#fff; background:var(--red);}
-  .nav .links a.cta:hover{background:var(--red-dk);}
-  .flagbar{height:6px; display:flex;}
-  .flagbar span{flex:1;} .flagbar .y{background:var(--yellow);} .flagbar .r{background:var(--red);}
-
-  /* ---------- Hero ---------- */
-  .hero{background:linear-gradient(135deg,#181614 0%,#2a2622 60%,#3a3430 100%); color:#fff; overflow:hidden; position:relative;}
-  .hero::after{content:''; position:absolute; right:-120px; top:-120px; width:420px; height:420px; border-radius:50%;
-    background:radial-gradient(circle at 30% 30%, rgba(214,40,40,.55), transparent 62%); pointer-events:none;}
-  .hero .inner{max-width:1120px; margin:0 auto; padding:64px 20px 72px; display:grid; grid-template-columns:1.05fr .95fr; gap:40px; align-items:center; position:relative; z-index:1;}
-  @media (max-width:860px){ .hero .inner{grid-template-columns:1fr; padding:44px 20px 52px;} }
-  .badge{display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.16);
-    padding:6px 13px; border-radius:999px; font-size:12.5px; font-weight:600; color:#f0ece3; margin-bottom:18px;}
-  .badge .d{width:8px; height:8px; border-radius:50%; background:var(--yellow); box-shadow:0 0 0 4px rgba(245,197,24,.22);}
-  .hero h1{font-family:'Archivo Black',sans-serif; font-size:clamp(30px,5.2vw,50px); line-height:1.05; margin:0 0 16px; letter-spacing:.4px;}
-  .hero h1 .hl{color:var(--yellow);}
-  .hero p.lead{color:#d3cec4; font-size:clamp(15px,2vw,17.5px); max-width:520px; margin:0 0 26px;}
-  .hero-actions{display:flex; flex-wrap:wrap; gap:12px;}
-  .btn{display:inline-flex; align-items:center; gap:9px; text-decoration:none; font-weight:700; font-size:15px; padding:13px 22px; border-radius:11px; transition:.16s; border:1px solid transparent;}
-  .btn-primary{background:var(--red); color:#fff;} .btn-primary:hover{background:var(--red-dk); transform:translateY(-1px);}
-  .btn-ghost{background:rgba(255,255,255,.06); color:#fff; border-color:rgba(255,255,255,.22);} .btn-ghost:hover{background:rgba(255,255,255,.14);}
-  .hero-metrics{display:flex; gap:30px; margin-top:34px;}
-  .hero-metrics .m b{font-family:'Archivo Black',sans-serif; font-size:26px; display:block; line-height:1;}
-  .hero-metrics .m span{font-size:11.5px; color:#b3ada2; text-transform:uppercase; letter-spacing:.7px;}
-
-  /* Mapa mini decorativo */
-  .hero-map{background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.12); border-radius:20px; padding:18px; box-shadow:var(--shadow);}
-  .hero-map svg{width:100%; height:auto; display:block; filter:drop-shadow(0 8px 16px rgba(0,0,0,.35));}
-  .hero-map .cap{display:flex; justify-content:space-between; align-items:center; margin-top:12px; font-size:11.5px; color:#b3ada2;}
-  .hero-map .cap .legend{display:flex; gap:12px;}
-  .hero-map .cap .legend i{width:9px; height:9px; border-radius:2px; display:inline-block; margin-right:5px; vertical-align:middle;}
-  .m-loc{stroke:#12100e; stroke-width:2; stroke-linejoin:round;}
-
-  /* ---------- Sections ---------- */
-  section.block{max-width:1120px; margin:0 auto; padding:64px 20px;}
-  .sec-head{text-align:center; max-width:640px; margin:0 auto 42px;}
-  .sec-head .kicker{color:var(--red); font-weight:700; text-transform:uppercase; letter-spacing:1.2px; font-size:12.5px;}
-  .sec-head h2{font-family:'Archivo Black',sans-serif; font-size:clamp(24px,3.4vw,34px); margin:8px 0 10px;}
-  .sec-head p{color:var(--dim); margin:0; font-size:15.5px;}
-
-  .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:20px;}
-  @media (max-width:820px){ .grid{grid-template-columns:1fr;} }
-  .feature{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:24px; box-shadow:var(--shadow-sm); transition:.18s;}
-  .feature:hover{transform:translateY(-3px); box-shadow:var(--shadow);}
-  .feature .ic{width:48px; height:48px; border-radius:12px; display:grid; place-items:center; font-size:24px; margin-bottom:14px;}
-  .feature h3{font-family:'Archivo Black',sans-serif; font-size:17px; margin:0 0 8px;}
-  .feature p{color:var(--dim); font-size:14px; margin:0;}
-  .ic-y{background:rgba(246,168,33,.16);} .ic-r{background:rgba(226,84,58,.16);} .ic-c{background:rgba(55,169,212,.16);}
-  .ic-b{background:rgba(58,79,176,.16);}
-
-  /* Steps */
-  .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:20px; counter-reset:s;}
-  @media (max-width:820px){ .steps{grid-template-columns:1fr;} }
-  .step{position:relative; background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:26px 22px 22px; box-shadow:var(--shadow-sm);}
-  .step::before{counter-increment:s; content:counter(s); position:absolute; top:-16px; left:22px; width:38px; height:38px; border-radius:10px;
-    background:var(--brand); color:#fff; font-family:'Archivo Black',sans-serif; display:grid; place-items:center; font-size:17px;}
-  .step h3{font-size:16px; margin:14px 0 6px;}
-  .step p{color:var(--dim); font-size:14px; margin:0;}
-
-  /* CTA band */
-  .cta-band{background:linear-gradient(120deg,var(--red),#b02020); color:#fff; border-radius:22px; padding:44px 28px; text-align:center; box-shadow:var(--shadow);}
-  .cta-band h2{font-family:'Archivo Black',sans-serif; font-size:clamp(22px,3.2vw,30px); margin:0 0 10px;}
-  .cta-band p{margin:0 auto 22px; max-width:520px; color:#ffe4e0;}
-  .cta-band .btn-white{background:#fff; color:var(--red);} .cta-band .btn-white:hover{background:#f4f0ea;}
-
-  /* Disclaimer */
-  .note{background:var(--panel2); border:1px dashed var(--line); border-radius:14px; padding:18px 20px; color:var(--dim); font-size:13.5px; margin-top:28px;}
-
-  footer{border-top:1px solid var(--line); background:var(--panel);}
-  .foot{max-width:1120px; margin:0 auto; padding:28px 20px; display:flex; flex-wrap:wrap; gap:14px; justify-content:space-between; align-items:center; color:var(--dim); font-size:12.5px;}
-  .foot .brand b{font-size:15px;}
-</style>
+<link rel="stylesheet" href="assets/app.css">
 </head>
 <body>
+<a href="#features" class="skip-link">Saltar al contenido</a>
 <header class="site">
   <div class="nav">
     <a class="brand" href="index.html"><span class="pin">📍</span><b>ALERTA BARRIO</b></a>
-    <nav class="links">
-      <a href="index.html" class="active">Inicio</a>
+    <nav class="links" aria-label="Principal">
+      <a href="index.html" class="active" aria-current="page">Inicio</a>
       <a href="alerta-barrio.html">Bogotá</a>
       <a href="informacion.html">Chía</a>
       <a href="reportes.html">Reportes en vivo</a>
@@ -122,27 +27,25 @@
 </header>
 <div class="flagbar"><span class="y"></span><span class="r"></span></div>
 
-<!-- ================= HERO ================= -->
-<section class="hero">
+<!-- HERO -->
+<section class="hero home">
   <div class="inner">
     <div>
       <span class="badge"><span class="d"></span> Proyecto TIC · Design Thinking</span>
       <h1>Conoce el <span class="hl">riesgo</span> de tu barrio antes de salir.</h1>
-      <p class="lead">Alerta Barrio centraliza la percepción ciudadana de seguridad por localidad en Bogotá. Consulta el mapa, califica tu zona y reporta lo que ves para que todos tomemos mejores decisiones al desplazarnos.</p>
+      <p class="lead">Alerta Barrio centraliza la percepción ciudadana de seguridad por localidad en Bogotá y Chía. Consulta el mapa, califica tu zona y reporta lo que ves para que todos tomemos mejores decisiones al desplazarnos.</p>
       <div class="hero-actions">
         <a class="btn btn-primary" href="alerta-barrio.html">🗺️ Explorar el mapa</a>
-        <a class="btn btn-ghost" href="#como">Cómo funciona</a>
+        <a class="btn btn-ghost" href="reportes.html">🚨 Reportar incidente</a>
       </div>
       <div class="hero-metrics">
         <div class="m"><b>20</b><span>Localidades</span></div>
-        <div class="m"><b>10</b><span>Entrevistas base</span></div>
+        <div class="m"><b>9</b><span>Municipios Chía</span></div>
         <div class="m"><b>100%</b><span>Ciudadano</span></div>
       </div>
     </div>
-
-    <!-- Mini mapa decorativo (mismo lenguaje visual que la vista de Bogotá) -->
     <div class="hero-map">
-      <svg viewBox="0 0 1024 700" role="img" aria-label="Vista previa del mapa de localidades de Bogotá" id="heroMap"></svg>
+      <svg viewBox="0 0 1000 720" role="img" aria-label="Vista previa del mapa de localidades de Bogotá" id="heroMap"></svg>
       <div class="cap">
         <span>Mapa interactivo de localidades</span>
         <span class="legend">
@@ -156,83 +59,55 @@
   </div>
 </section>
 
-<!-- ================= FEATURES ================= -->
-<section class="block" id="features">
+<!-- FEATURES -->
+<section class="info-section" id="features">
   <div class="sec-head">
     <div class="kicker">Qué puedes hacer</div>
     <h2>Información localizada y en tiempo real</h2>
     <p>Una herramienta simple, sin instalaciones ni conexión, para consultar y aportar sobre la seguridad de cada zona.</p>
   </div>
-  <div class="grid">
-    <div class="feature">
-      <div class="ic ic-r">🗺️</div>
-      <h3>Mapa de percepción</h3>
-      <p>Visualiza las 20 localidades de Bogotá coloreadas según el riesgo percibido por la comunidad, de bajo a alto.</p>
-    </div>
-    <div class="feature">
-      <div class="ic ic-y">⭐</div>
-      <h3>Califica tu zona</h3>
-      <p>Asigna una calificación de 1 a 10 al riesgo que percibes en cada sector y ayuda a construir un panorama colectivo.</p>
-    </div>
-    <div class="feature">
-      <div class="ic ic-c">💬</div>
-      <h3>Reporta y comenta</h3>
-      <p>Describe lo que observaste —sin datos personales— para alertar a otros vecinos sobre situaciones puntuales.</p>
-    </div>
-    <div class="feature">
-      <div class="ic ic-b">📊</div>
-      <h3>Ranking de riesgo</h3>
-      <p>Consulta las localidades ordenadas de mayor a menor percepción de riesgo con un vistazo rápido.</p>
-    </div>
-    <div class="feature">
-      <div class="ic ic-r">📶</div>
-      <h3>Funciona sin conexión</h3>
-      <p>Todo se ejecuta en tu navegador y se guarda localmente. No necesita servidor ni instalación.</p>
-    </div>
-    <div class="feature">
-      <div class="ic ic-c">🏙️</div>
-      <h3>Más de una ciudad</h3>
-      <p>Además de Bogotá, explora la percepción de riesgo en el municipio de Chía.</p>
-    </div>
+  <div class="info-grid">
+    <div class="info-card"><div class="ic ic-r">🗺️</div><h3>Mapa de percepción</h3><p>Localidades de Bogotá y municipios de Chía coloreados según el riesgo percibido por la comunidad.</p></div>
+    <div class="info-card"><div class="ic ic-y">⭐</div><h3>Califica tu zona</h3><p>Asigna una calificación de 1 a 10 al riesgo que percibes y ayuda a construir un panorama colectivo.</p></div>
+    <div class="info-card"><div class="ic ic-c">🚨</div><h3>Reporta en vivo</h3><p>Publica un incidente (robo, acoso, etc.) y aparece al instante en el feed y en el mapa de la zona.</p></div>
+    <div class="info-card"><div class="ic ic-b">📊</div><h3>Ranking de riesgo</h3><p>Consulta las zonas ordenadas de mayor a menor percepción de riesgo de un vistazo.</p></div>
+    <div class="info-card"><div class="ic ic-r">📶</div><h3>Funciona sin conexión</h3><p>Todo corre en tu navegador y se guarda localmente. Listo para conectar a un backend en tiempo real.</p></div>
+    <div class="info-card"><div class="ic ic-c">🏙️</div><h3>Más de una ciudad</h3><p>Explora la percepción de riesgo en Bogotá y en el municipio de Chía y sus vecinos.</p></div>
   </div>
 </section>
 
-<!-- ================= STEPS ================= -->
-<section class="block" id="como" style="background:var(--panel2); max-width:none;">
-  <div style="max-width:1120px; margin:0 auto;">
-    <div class="sec-head">
-      <div class="kicker">Cómo funciona</div>
-      <h2>Tres pasos, cero fricción</h2>
-      <p>Del reporte ciudadano al mapa de calor que ayuda a decidir cómo desplazarse.</p>
+<!-- ÚLTIMOS REPORTES -->
+<section class="info-section">
+  <div class="card">
+    <div class="feed-head">
+      <h2>🔴 Últimos reportes en vivo</h2>
+      <a class="btn-reset" href="reportes.html" style="text-decoration:none;">Ver todos →</a>
     </div>
-    <div class="steps">
-      <div class="step">
-        <h3>Consulta el mapa</h3>
-        <p>Abre la vista de Bogotá y observa cómo cada localidad refleja su percepción de riesgo con color.</p>
-      </div>
-      <div class="step">
-        <h3>Califica y reporta</h3>
-        <p>Toca una localidad, califica el riesgo que percibes y deja un comentario sobre lo que observaste.</p>
-      </div>
-      <div class="step">
-        <h3>Decide mejor</h3>
-        <p>El mapa y el ranking se actualizan al instante para que planees tus recorridos con más información.</p>
-      </div>
-    </div>
+    <ul class="feed" id="homeFeed"></ul>
+    <p class="empty" id="homeFeedEmpty" style="display:none;">Aún no hay reportes.</p>
   </div>
 </section>
 
-<!-- ================= CTA ================= -->
-<section class="block">
+<!-- STEPS -->
+<div class="sec-title"><div class="kicker">Cómo funciona</div><h2>Tres pasos, cero fricción</h2></div>
+<section class="info-section">
+  <div class="steps">
+    <div class="step"><h3>Consulta el mapa</h3><p>Abre Bogotá o Chía y observa cómo cada zona refleja su percepción de riesgo con color.</p></div>
+    <div class="step"><h3>Califica y reporta</h3><p>Toca una zona para calificarla, o publica un reporte en vivo de lo que observaste.</p></div>
+    <div class="step"><h3>Decide mejor</h3><p>El mapa, el ranking y el feed se actualizan al instante para planear mejor tus recorridos.</p></div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section style="padding-top:8px;">
   <div class="cta-band">
-    <h2>Empieza a explorar tu ciudad</h2>
-    <p>El mapa interactivo está listo. Consulta el riesgo por localidad y aporta tu percepción en segundos.</p>
-    <a class="btn btn-white" href="alerta-barrio.html">🗺️ Abrir el mapa de Bogotá</a>
+    <div class="cta-inner">
+      <h2>Empieza a explorar tu ciudad</h2>
+      <p>El mapa interactivo está listo. Consulta el riesgo por zona y aporta tu percepción en segundos.</p>
+      <a class="btn btn-white" href="alerta-barrio.html">🗺️ Abrir el mapa de Bogotá</a>
+    </div>
   </div>
-  <div class="note">
-    <b>Alcance:</b> Alerta Barrio no pretende resolver la inseguridad, sino centralizar y facilitar el acceso a la información.
-    Los datos son reportados por usuarios y reflejan <b>percepción</b>, no cifras oficiales de criminalidad. El contorno de las localidades es esquemático.
-  </div>
+  <div class="note"><b>Alcance:</b> Alerta Barrio no pretende resolver la inseguridad, sino centralizar y facilitar el acceso a la información. Los datos son reportados por usuarios y reflejan <b>percepción</b>, no cifras oficiales de criminalidad.</div>
 </section>
 
 <footer>
@@ -242,45 +117,53 @@
   </div>
 </footer>
 
+<script src="assets/data.js"></script>
 <script>
-/* Mini mapa del hero: reutiliza las siluetas de las localidades de la vista de Bogotá,
-   pintadas con el color base de la ilustración de referencia. */
-const HERO_LOCS = [
-  { base:'#f6a821', cx:200, cy:78,  fs:15, name:'USAQUÉN', d:'M45 120 Q35 60 90 52 Q160 40 250 46 Q330 50 345 78 Q352 108 320 118 Q300 126 250 122 Q140 132 95 130 Q52 132 45 120 Z' },
-  { base:'#3a4fb0', cx:190, cy:225, fs:17, name:'SUBA', d:'M40 150 Q30 138 60 132 Q120 126 200 138 Q300 150 320 175 Q335 210 320 265 Q300 320 240 315 Q160 312 110 300 Q60 288 44 250 Q30 200 40 150 Z' },
-  { base:'#e2543a', cx:420, cy:155, fs:12, name:'CHAPINERO', d:'M355 120 Q380 105 440 112 Q510 120 520 150 Q525 185 500 205 Q470 220 420 214 Q375 208 360 185 Q348 150 355 120 Z' },
-  { base:'#37a9d4', cx:370, cy:215, fs:11, name:'B. UNIDOS', d:'M335 190 Q360 178 410 186 Q450 194 452 222 Q450 250 415 258 Q375 262 348 250 Q328 232 335 190 Z' },
-  { base:'#e2543a', cx:290, cy:330, fs:12, name:'ENGATIVÁ', d:'M215 285 Q250 275 320 288 Q370 298 375 335 Q378 375 340 388 Q290 398 245 388 Q205 378 200 340 Q198 305 215 285 Z' },
-  { base:'#37a9d4', cx:445, cy:250, fs:10, name:'TEUSAQUILLO', d:'M400 228 Q440 220 490 232 Q515 240 512 268 Q505 292 465 296 Q420 298 402 278 Q392 250 400 228 Z' },
-  { base:'#37a9d4', cx:588, cy:205, fs:11, name:'SANTAFÉ', d:'M548 178 Q580 168 618 178 Q640 188 636 214 Q628 236 592 240 Q560 240 546 220 Q540 196 548 178 Z' },
-  { base:'#f6a821', cx:640, cy:168, fs:10, name:'CANDELARIA', d:'M598 150 Q630 138 668 148 Q690 158 686 180 Q680 200 648 204 L636 232 L620 204 Q596 200 590 180 Q586 158 598 150 Z' },
-  { base:'#f6a821', cx:582, cy:252, fs:10, name:'MÁRTIRES', d:'M552 240 Q580 232 612 240 Q630 246 628 266 Q622 284 592 288 Q564 288 552 272 Q546 252 552 240 Z' },
-  { base:'#e2543a', cx:640, cy:295, fs:9,  name:'A. NARIÑO', d:'M612 280 Q638 272 662 282 Q676 292 672 308 Q666 322 642 326 Q618 324 610 308 Q606 290 612 280 Z' },
-  { base:'#e2543a', cx:760, cy:255, fs:11, name:'SAN CRISTÓBAL', d:'M690 222 Q740 210 800 224 Q840 234 838 270 Q830 306 780 312 Q730 314 700 298 Q678 272 690 222 Z' },
-  { base:'#e2543a', cx:958, cy:250, fs:10, name:'SUMAPAZ', d:'M918 228 Q948 220 984 230 Q1002 240 998 264 Q990 284 956 288 Q926 286 916 268 Q912 244 918 228 Z' },
-  { base:'#3a4fb0', cx:868, cy:320, fs:15, name:'USME', d:'M800 285 Q850 275 910 290 Q948 300 942 340 Q930 380 878 385 Q828 384 806 360 Q788 320 800 285 Z' },
-  { base:'#e2543a', cx:540, cy:325, fs:10, name:'PUENTE ARANDA', d:'M488 300 Q525 290 580 302 Q600 312 596 348 Q588 386 545 392 Q505 392 490 366 Q478 328 488 300 Z' },
-  { base:'#37a9d4', cx:700, cy:345, fs:10, name:'RAFAEL URIBE', d:'M665 322 Q700 312 738 324 Q756 334 750 362 Q742 384 706 388 Q674 386 662 366 Q658 340 665 322 Z' },
-  { base:'#3a4fb0', cx:540, cy:455, fs:14, name:'KENNEDY', d:'M455 410 Q510 398 590 415 Q630 425 626 470 Q615 515 555 522 Q495 522 465 498 Q438 455 455 410 Z' },
-  { base:'#37a9d4', cx:325, cy:445, fs:13, name:'FONTIBÓN', d:'M250 400 Q305 388 380 405 Q415 416 408 462 Q396 510 335 516 Q280 514 258 486 Q236 445 250 400 Z' },
-  { base:'#f6a821', cx:665, cy:430, fs:10, name:'TUNJUELITO', d:'M640 400 Q665 392 690 402 Q706 412 702 458 Q696 500 668 504 Q646 500 638 470 Q632 428 640 400 Z' },
-  { base:'#e2543a', cx:770, cy:450, fs:11, name:'CIUDAD BOLÍVAR', d:'M710 420 Q760 408 820 422 Q856 432 848 472 Q836 508 786 514 Q740 512 720 486 Q700 452 710 420 Z' },
-  { base:'#37a9d4', cx:548, cy:600, fs:14, name:'BOSA', d:'M490 545 Q540 535 600 548 Q630 558 624 596 Q615 636 566 642 Q520 640 500 616 Q476 578 490 545 Z' }
-];
-const NS='http://www.w3.org/2000/svg';
-const hm=document.getElementById('heroMap');
-HERO_LOCS.forEach(l=>{
-  const p=document.createElementNS(NS,'path');
-  p.setAttribute('d',l.d); p.setAttribute('fill',l.base); p.setAttribute('class','m-loc');
-  hm.appendChild(p);
-  const t=document.createElementNS(NS,'text');
-  t.setAttribute('x',l.cx); t.setAttribute('y',l.cy); t.setAttribute('text-anchor','middle');
-  t.setAttribute('dominant-baseline','middle'); t.setAttribute('font-size',l.fs);
-  t.setAttribute('font-family',"'Archivo Black',sans-serif"); t.setAttribute('fill','#fff');
-  t.setAttribute('paint-order','stroke'); t.setAttribute('stroke','rgba(0,0,0,.35)'); t.setAttribute('stroke-width','.6');
-  t.textContent=l.name;
-  hm.appendChild(t);
-});
+  // Mini mapa del hero usando la geometría real de Bogotá
+  (function () {
+    AlertaData.seedIfEmpty();
+    const NS = 'http://www.w3.org/2000/svg';
+    const hm = document.getElementById('heroMap');
+    AlertaData.getZones('bogota').forEach(z => {
+      const p = document.createElementNS(NS, 'path');
+      p.setAttribute('d', z.d); p.setAttribute('fill', z.base); p.setAttribute('class', 'm-loc');
+      hm.appendChild(p);
+      if (z.fs >= 12) {
+        const t = document.createElementNS(NS, 'text');
+        t.setAttribute('x', z.cx); t.setAttribute('y', z.cy); t.setAttribute('text-anchor', 'middle');
+        t.setAttribute('dominant-baseline', 'middle'); t.setAttribute('font-size', z.fs);
+        t.setAttribute('font-family', "'Archivo Black',sans-serif"); t.setAttribute('fill', '#fff');
+        t.setAttribute('paint-order', 'stroke'); t.setAttribute('stroke', 'rgba(0,0,0,.45)'); t.setAttribute('stroke-width', '.8');
+        t.textContent = z.name; hm.appendChild(t);
+      }
+    });
+
+    // Últimos reportes en vivo
+    const cities = AlertaData.getCities();
+    function renderHomeFeed() {
+      const feed = document.getElementById('homeFeed');
+      const empty = document.getElementById('homeFeedEmpty');
+      const list = AlertaData.getReports({ limit: 5 });
+      if (!list.length) { feed.innerHTML = ''; empty.style.display = 'block'; return; }
+      empty.style.display = 'none';
+      const esc = s => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
+      feed.innerHTML = list.map(r => {
+        const t = AlertaData.tipoMeta(r.tipo), lv = AlertaData.NIVELES[r.nivel] || AlertaData.NIVELES.medio;
+        const ciudad = cities[r.ciudad] ? cities[r.ciudad].label : '';
+        return `<li class="report" style="border-left-color:${lv.color}">
+          <div class="em">${t.em}</div>
+          <div class="body">
+            <div class="top"><span class="ttl">${t.label}</span><span class="badge-lvl" style="background:${lv.color}">${lv.label}</span></div>
+            <div class="loc">📍 ${esc(r.zona)} · ${esc(ciudad)}</div>
+            ${r.note ? `<p class="note">${esc(r.note)}</p>` : ''}
+            <div class="time">🕒 ${AlertaData.timeAgo(r.ts)}</div>
+          </div>
+        </li>`;
+      }).join('');
+    }
+    AlertaData.subscribe(renderHomeFeed);
+    renderHomeFeed();
+  })();
 </script>
 </body>
 </html>

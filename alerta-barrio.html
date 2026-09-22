@@ -9,139 +9,16 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📍</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --bg:#f4f5f2; --panel:#ffffff; --panel2:#f3f1eb; --ink:#181614; --dim:#6b665d; --line:#e4e0d6;
-    --yellow:#f5c518; --yellow-dk:#d9a800; --red:#d62828; --red-dk:#a81e1e; --black:#181614; --brand:#181614;
-    --map-yellow:#f6a821; --map-blue:#3a4fb0; --map-red:#e2543a; --map-cyan:#37a9d4;
-    --c0:#efede6; --c1:#fbe9a6; --c2:#f5c518; --c3:#d62828;
-    --shadow:0 14px 40px rgba(24,22,20,.13); --shadow-sm:0 3px 10px rgba(24,22,20,.07);
-    --radius:16px;
-  }
-  *{box-sizing:border-box;}
-  html{scroll-behavior:smooth;}
-  body{margin:0; background:var(--bg); color:var(--ink);
-    font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-    -webkit-font-smoothing:antialiased; line-height:1.55;}
-  a{color:inherit;}
-
-  /* ---------- Header ---------- */
-  header.site{position:sticky; top:0; z-index:15; background:rgba(255,255,255,.92); backdrop-filter:blur(8px); border-bottom:1px solid var(--line);}
-  .nav{max-width:1180px; margin:0 auto; display:flex; align-items:center; gap:18px; padding:12px 22px;}
-  .brand{display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--ink);}
-  .brand .pin{width:34px; height:34px; border-radius:9px; background:var(--red); color:#fff; display:grid; place-items:center; font-size:18px; box-shadow:var(--shadow-sm);}
-  .brand b{font-family:'Archivo Black',sans-serif; font-size:18px; letter-spacing:.4px;}
-  .nav .links{margin-left:auto; display:flex; align-items:center; gap:6px;}
-  .nav .links a{text-decoration:none; color:var(--dim); font-weight:600; font-size:14px; padding:8px 13px; border-radius:8px; transition:.15s;}
-  .nav .links a:hover{color:var(--ink); background:var(--panel2);}
-  .nav .links a.active{color:#fff; background:var(--brand);}
-  .flagbar{height:6px; display:flex;}
-  .flagbar span{flex:1;} .flagbar .y{background:var(--yellow);} .flagbar .r{background:var(--red);}
-
-  /* ---------- Hero ---------- */
-  .hero{background:linear-gradient(135deg,#181614,#2a2622 65%,#3a3430); color:#fff;}
-  .hero .inner{max-width:1180px; margin:0 auto; padding:52px 22px; text-align:center;}
-  .hero .badge{display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.16); padding:6px 13px; border-radius:999px; font-size:12.5px; font-weight:600; color:#f0ece3; margin-bottom:16px;}
-  .hero .badge .d{width:8px;height:8px;border-radius:50%;background:var(--yellow);box-shadow:0 0 0 4px rgba(245,197,24,.22);}
-  .hero h1{font-family:'Archivo Black',sans-serif; font-size:clamp(26px,4.6vw,44px); margin:0 0 12px; letter-spacing:.4px;}
-  .hero h1 .hl{color:var(--yellow);}
-  .hero p{color:#d3cec4; font-size:clamp(15px,2vw,17px); max-width:620px; margin:0 auto;}
-  .hero .stats{display:flex; justify-content:center; gap:40px; margin-top:30px; flex-wrap:wrap;}
-  .hero .stat b{font-family:'Archivo Black',sans-serif; font-size:30px; display:block; line-height:1;}
-  .hero .stat span{font-size:11.5px; color:#b3ada2; text-transform:uppercase; letter-spacing:.7px;}
-
-  /* ---------- Layout ---------- */
-  main{max-width:1180px; margin:0 auto; padding:34px 22px 20px;}
-  .map-section{display:grid; grid-template-columns:1.6fr 1fr; gap:22px; align-items:start;}
-  @media (max-width:900px){ .map-section{grid-template-columns:1fr;} }
-
-  .card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow-sm);}
-  .card > h2{font-family:'Archivo Black',sans-serif; font-size:17px; margin:0 0 4px; display:flex; align-items:center; gap:9px;}
-  .hint{color:var(--dim); font-size:13px; margin:0 0 14px;}
-  .legend{display:flex; gap:16px; font-size:12.5px; color:var(--dim); flex-wrap:wrap; margin-top:14px; border-top:1px solid var(--line); padding-top:14px;}
-  .legend span{display:flex; align-items:center; gap:6px;}
-  .dot{width:12px; height:12px; border-radius:3px; display:inline-block; border:1px solid rgba(0,0,0,.12);}
-
-  /* ---------- Map ---------- */
-  #mapWrap{width:100%; background:radial-gradient(120% 100% at 50% 0%, #ffffff, #eef0e9); border-radius:12px; overflow:hidden; border:1px solid var(--line); padding:6px;}
-  svg#mapSvg{width:100%; height:auto; display:block;}
-  .loc{stroke:#12100e; stroke-width:3; stroke-linejoin:round; stroke-linecap:round; cursor:pointer; transition:filter .12s ease; }
-  .loc:hover{filter:brightness(1.09) drop-shadow(0 3px 5px rgba(0,0,0,.3));}
-  .loc.sel{stroke-width:5;}
-  .loc-label{font-family:'Archivo Black',sans-serif; fill:#fff; paint-order:stroke; stroke:rgba(0,0,0,.4); stroke-width:.7; pointer-events:none; text-anchor:middle; letter-spacing:.2px;}
-
-  /* ---------- Ranking ---------- */
-  ul.ranking{list-style:none; margin:0; padding:0;}
-  ul.ranking li{display:grid; grid-template-columns:22px 1fr auto; align-items:center; column-gap:10px; row-gap:4px; padding:7px 0; border-bottom:1px solid var(--line); font-size:13.5px; cursor:pointer;}
-  ul.ranking li:last-child{border-bottom:none;}
-  ul.ranking li:hover .name{color:var(--red);}
-  ul.ranking .rank{font-family:'Archivo Black',sans-serif; color:var(--dim); font-size:12px;}
-  ul.ranking .name{font-weight:600;}
-  ul.ranking .val{font-family:'Archivo Black',sans-serif; font-size:14px;}
-  ul.ranking .bar-track{grid-column:2/-1; height:6px; background:var(--panel2); border-radius:3px; overflow:hidden;}
-  ul.ranking .bar-fill{height:100%; border-radius:3px; transition:width .3s ease;}
-
-  /* ---------- Info / página ---------- */
-  .info-section{max-width:1180px; margin:0 auto; padding:26px 22px 8px;}
-  .info-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px;}
-  @media (max-width:820px){ .info-grid{grid-template-columns:1fr;} }
-  .info-card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:22px; box-shadow:var(--shadow-sm);}
-  .info-card .ic{width:44px;height:44px;border-radius:11px;display:grid;place-items:center;font-size:22px;margin-bottom:12px;}
-  .ic-y{background:rgba(246,168,33,.16);} .ic-r{background:rgba(226,84,58,.16);} .ic-c{background:rgba(55,169,212,.16);}
-  .info-card h3{font-family:'Archivo Black',sans-serif; font-size:16px; margin:0 0 6px;}
-  .info-card p{color:var(--dim); font-size:14px; margin:0;}
-
-  .sec-title{max-width:1180px; margin:36px auto 4px; padding:0 22px;}
-  .sec-title .kicker{color:var(--red); font-weight:700; text-transform:uppercase; letter-spacing:1.2px; font-size:12px;}
-  .sec-title h2{font-family:'Archivo Black',sans-serif; font-size:clamp(21px,3vw,28px); margin:6px 0 0;}
-
-  .cta-band{max-width:1180px; margin:40px auto 0; padding:0 22px;}
-  .cta-inner{background:linear-gradient(120deg,var(--red),#b02020); color:#fff; border-radius:22px; padding:38px 26px; text-align:center; box-shadow:var(--shadow);}
-  .cta-inner h2{font-family:'Archivo Black',sans-serif; font-size:clamp(20px,3vw,28px); margin:0 0 8px;}
-  .cta-inner p{margin:0 auto 20px; max-width:520px; color:#ffe4e0;}
-  .btn{display:inline-flex; align-items:center; gap:9px; text-decoration:none; font-weight:700; font-size:15px; padding:13px 24px; border-radius:11px; transition:.16s; border:none; cursor:pointer;}
-  .btn-white{background:#fff; color:var(--red);} .btn-white:hover{background:#f4f0ea;}
-
-  /* ---------- Overlay panel ---------- */
-  .overlay{position:fixed; inset:0; background:rgba(24,22,20,.55); display:none; align-items:flex-end; justify-content:center; z-index:40; backdrop-filter:blur(2px);}
-  .overlay.open{display:flex;}
-  .panel{background:var(--panel); width:100%; max-width:520px; border-radius:16px 16px 0 0; padding:22px 20px calc(26px + env(safe-area-inset-bottom,0px)); max-height:90vh; overflow-y:auto; border-top:5px solid var(--red); animation:slideUp .22s ease;}
-  @keyframes slideUp{from{transform:translateY(28px);opacity:.6;}to{transform:none;opacity:1;}}
-  @media (min-width:640px){ .overlay{align-items:center;} .panel{border-radius:14px;} }
-  .panel-head{display:flex; justify-content:space-between; align-items:flex-start; gap:12px;}
-  .panel-head h2{font-family:'Archivo Black',sans-serif; font-size:21px; margin:0;}
-  .panel-head .loc-sub{color:var(--dim); font-size:12.5px; margin-top:2px;}
-  .close{background:var(--panel2); border:none; color:var(--dim); font-size:16px; cursor:pointer; width:32px; height:32px; border-radius:8px; flex-shrink:0;}
-  .close:hover{color:var(--ink); background:var(--line);}
-  .score-row{display:flex; align-items:baseline; gap:8px; margin:16px 0 20px; padding:14px 16px; background:var(--panel2); border-radius:10px;}
-  .score-row .big{font-family:'Archivo Black',sans-serif; font-size:40px; line-height:1;}
-  .score-row .of{color:var(--dim); font-size:14px;}
-  .score-row .count{color:var(--dim); font-size:12.5px; margin-left:auto; text-align:right;}
-  label{display:block; font-size:12.5px; color:var(--dim); margin:0 0 8px; font-weight:600;}
-  input[type=range]{width:100%; accent-color:var(--red);}
-  .rangeval{font-family:'Archivo Black',sans-serif; font-size:22px; text-align:center; margin:6px 0 12px;}
-  button.primary{width:100%; background:var(--red); color:#fff; border:none; border-radius:9px; padding:12px; font-weight:700; font-size:14px; cursor:pointer; margin-bottom:22px; transition:.15s;}
-  button.primary:hover{background:var(--red-dk);}
-  h3.sub{font-size:12.5px; text-transform:uppercase; letter-spacing:.6px; color:var(--dim); margin:0 0 10px;}
-  textarea{width:100%; background:var(--panel2); border:1px solid var(--line); color:var(--ink); border-radius:9px; padding:10px 11px; font-family:inherit; font-size:14px; resize:vertical; min-height:58px;}
-  button.secondary{background:var(--yellow); color:var(--black); border:1px solid var(--yellow-dk); border-radius:9px; padding:9px 15px; font-size:13px; font-weight:700; cursor:pointer; margin-top:8px;}
-  button.secondary:hover{background:var(--yellow-dk);}
-  ul.comments{list-style:none; margin:14px 0 0; padding:0;}
-  ul.comments li{border-top:1px solid var(--line); padding:11px 0; font-size:13.5px;}
-  ul.comments li .meta{color:var(--dim); font-size:11.5px; margin-top:3px;}
-  .empty{color:var(--dim); font-size:13px; padding:6px 0 0;}
-
-  footer{border-top:1px solid var(--line); background:var(--panel); margin-top:44px;}
-  .foot{max-width:1180px; margin:0 auto; padding:26px 22px; display:flex; flex-wrap:wrap; gap:12px; justify-content:space-between; align-items:center; color:var(--dim); font-size:12.5px;}
-</style>
+<link rel="stylesheet" href="assets/app.css">
 </head>
 <body>
+<a href="#mapWrap" class="skip-link">Saltar al mapa</a>
 <header class="site">
   <div class="nav">
     <a class="brand" href="index.html"><span class="pin">📍</span><b>ALERTA BARRIO</b></a>
-    <nav class="links">
+    <nav class="links" aria-label="Principal">
       <a href="index.html">Inicio</a>
-      <a href="alerta-barrio.html" class="active">Bogotá</a>
+      <a href="alerta-barrio.html" class="active" aria-current="page">Bogotá</a>
       <a href="informacion.html">Chía</a>
       <a href="reportes.html">Reportes en vivo</a>
     </nav>
@@ -153,7 +30,7 @@
   <div class="inner">
     <span class="badge"><span class="d"></span> Percepción ciudadana · Bogotá D.C.</span>
     <h1>El mapa del <span class="hl">riesgo</span> de toda Bogotá</h1>
-    <p>Explora las 20 localidades de la ciudad. Cada zona se colorea según la percepción de riesgo de la comunidad. Haz clic en una localidad para calificarla y dejar tu reporte.</p>
+    <p>Explora las 20 localidades de la ciudad. Cada zona se colorea según la percepción de la comunidad y los reportes recientes. Haz clic en una localidad para calificarla y dejar tu reporte.</p>
     <div class="stats">
       <div class="stat"><b id="statZones">20</b><span>Localidades</span></div>
       <div class="stat"><b id="statReports">0</b><span>Reportes</span></div>
@@ -166,9 +43,9 @@
   <div class="map-section">
     <div class="card">
       <h2>🗺️ Localidades de Bogotá</h2>
-      <p class="hint">Silueta esquemática de la ciudad completa. Cada localidad es interactiva: haz clic para ver el detalle, calificar el riesgo percibido (1–10) y dejar comentarios.</p>
-      <div id="mapWrap"><svg id="mapSvg" viewBox="0 0 1000 720" role="img" aria-label="Mapa de las localidades de Bogotá"></svg></div>
-      <div class="legend">
+      <p class="hint">Cada localidad es interactiva: haz clic (o Enter) para ver el detalle, calificar el riesgo percibido (1–10) y dejar comentarios. El color combina calificaciones y reportes en vivo recientes.</p>
+      <div id="mapWrap"><svg id="mapSvg" role="img" aria-label="Mapa interactivo de las localidades de Bogotá"></svg></div>
+      <div class="legend" aria-hidden="true">
         <span><i class="dot" style="background:var(--c0)"></i>Sin datos</span>
         <span><i class="dot" style="background:var(--c1)"></i>Bajo (1–3)</span>
         <span><i class="dot" style="background:var(--c2)"></i>Medio (4–6)</span>
@@ -186,52 +63,28 @@
 
 <section class="info-section">
   <div class="info-grid">
-    <div class="info-card">
-      <div class="ic ic-r">⭐</div>
-      <h3>Califica tu zona</h3>
-      <p>Asigna una calificación de 1 a 10 al riesgo que percibes en cada localidad y ayuda a construir un panorama colectivo.</p>
-    </div>
-    <div class="info-card">
-      <div class="ic ic-y">💬</div>
-      <h3>Reporta lo que ves</h3>
-      <p>Deja comentarios sobre situaciones puntuales —sin datos personales— para alertar a otros vecinos de la zona.</p>
-    </div>
-    <div class="info-card">
-      <div class="ic ic-c">📶</div>
-      <h3>Funciona sin conexión</h3>
-      <p>Todo se ejecuta en tu navegador y se guarda localmente. No necesita servidor ni instalación.</p>
-    </div>
-  </div>
-</section>
-
-<div class="sec-title">
-  <div class="kicker">Cómo leer el mapa</div>
-  <h2>De verde a rojo según la percepción</h2>
-</div>
-<section class="info-section">
-  <div class="info-grid">
-    <div class="info-card"><div class="ic ic-c" style="background:rgba(67,160,71,.16)">🟢</div><h3>Riesgo bajo (1–3)</h3><p>Zonas donde la comunidad reporta sensación de seguridad en la mayoría de horarios.</p></div>
-    <div class="info-card"><div class="ic ic-y">🟡</div><h3>Riesgo medio (4–6)</h3><p>Sectores con precaución recomendada, especialmente al caer la tarde o en calles solitarias.</p></div>
-    <div class="info-card"><div class="ic ic-r">🔴</div><h3>Riesgo alto (7–10)</h3><p>Zonas con mayor percepción de inseguridad según los reportes ciudadanos acumulados.</p></div>
+    <div class="info-card"><div class="ic ic-r">⭐</div><h3>Califica tu zona</h3><p>Asigna una calificación de 1 a 10 al riesgo que percibes en cada localidad y ayuda a construir un panorama colectivo.</p></div>
+    <div class="info-card"><div class="ic ic-y">💬</div><h3>Reporta lo que ves</h3><p>Deja comentarios sobre situaciones puntuales —sin datos personales— o publica un reporte en vivo desde la sección de reportes.</p></div>
+    <div class="info-card"><div class="ic ic-c">🔄</div><h3>Se actualiza solo</h3><p>Los reportes recientes recolorean el mapa automáticamente y se “archivan” tras 72 horas.</p></div>
   </div>
 </section>
 
 <div class="cta-band">
   <div class="cta-inner">
-    <h2>Tu reporte suma</h2>
-    <p>Entre más personas califiquen y comenten, más útil es el mapa para toda la ciudad. Empieza tocando tu localidad.</p>
-    <a class="btn btn-white" href="#mapWrap">🗺️ Ir al mapa</a>
+    <h2>¿Viste algo? Repórtalo</h2>
+    <p>Publica un incidente en segundos y aparecerá en el feed y en el mapa al instante.</p>
+    <a class="btn btn-white" href="reportes.html">🚨 Ir a reportes en vivo</a>
   </div>
 </div>
 
 <footer>
   <div class="foot">
     <a class="brand" href="index.html" style="text-decoration:none;"><span class="pin" style="width:28px;height:28px;font-size:15px;">📍</span><b>ALERTA BARRIO</b></a>
-    <span>Los datos reflejan percepción ciudadana, no cifras oficiales de criminalidad. El contorno de las localidades es esquemático.</span>
+    <span>Los datos reflejan percepción ciudadana, no cifras oficiales. Geometría: localidades oficiales (DANE). Se guarda localmente en tu navegador.</span>
   </div>
 </footer>
 
-<div class="overlay" id="overlay">
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="panelName">
   <div class="panel">
     <div class="panel-head">
       <div>
@@ -248,7 +101,9 @@
     <input type="range" id="riskRange" min="1" max="10" value="5">
     <div class="rangeval" id="riskVal">5</div>
     <button class="primary" id="submitRating">Enviar calificación</button>
-    <h3 class="sub">Comentarios</h3>
+    <h3 class="sub">Reportes recientes en la zona</h3>
+    <div id="panelRecent"></div>
+    <h3 class="sub" style="margin-top:16px;">Comentarios</h3>
     <textarea id="commentText" placeholder="Describe lo que observaste (sin datos personales)..."></textarea>
     <button class="secondary" id="submitComment">Agregar comentario</button>
     <ul class="comments" id="commentList"></ul>
@@ -256,152 +111,8 @@
   </div>
 </div>
 
-<script>
-/* ============================================================================
-   Alerta Barrio — Mapa interactivo de las localidades de Bogotá.
-   Las siluetas son polígonos SVG que forman un mosaico continuo de la ciudad
-   (inspirado en la ilustración de referencia): Usaquén y Suba al norte,
-   Kennedy/Bosa al suroccidente, San Cristóbal/Usme/Sumapaz al oriente y sur.
-   ========================================================================== */
-/* Geometria REAL de las 20 localidades de Bogota (fuente: TopoJSON oficial
-   DANE MGN, via datos abiertos). Sumapaz se muestra como recuadro (inset) por
-   su gran tamano rural. Colores segun la ilustracion de referencia. */
-const LOCALIDADES = [
-  { id:"suba", name:"SUBA", base:"#3a4fb0", cx:533.4, cy:118.7, fs:23, d:"M580.9,46.9L554.8,206.3L541.3,203L531.8,208L527.7,199L523.4,197.6L522,194.2L519.1,192.8L519.6,184.7L516.3,179.1L513.4,178.1L509.6,171.2L505.7,170.1L505.3,166.6L501.3,163.8L501.1,161.5L495.9,159.6L489.7,154.3L489.1,151.3L483.3,148.8L482.1,145.8L475.9,145.1L474.4,148.3L472.8,148.2L469.3,143.9L471.4,138.4L476.5,137L474.6,132.9L478,133.6L479.8,136.8L476.9,129.1L482.4,128.8L481.5,122.4L486.5,120.1L488.1,113.9L484.8,114.4L489,110L489.4,108.4L486.8,108.3L489.9,101.3L486.1,102L489.4,99.1L486.1,98.4L489.3,96.6L488.9,92.7L491.8,94L489.4,91.2L491,87.4L494.3,87.3L491.6,88.3L492.5,90.9L496.6,89L499.8,79.8L502.2,79.1L501.4,81.9L502.7,81.6L505,77.2L510.3,77L513.3,86.6L520.5,80.5L515.5,80L518.9,78.3L518.4,74.6L520.6,74.2L519,72.4L528.8,66.4L528.7,64.7L523.4,62.2L525.1,59.7L520.6,57.8L521.2,52L524.8,50.7L526.4,57.3L529.9,51.9L528.5,47.4L521.2,39.2L535,34L538.2,36.9L539.4,43.5L543.5,44L544.4,35.8L546,36.1L546.5,41.4L548.2,35.2L550.9,44.6L551.4,43.3L556.2,43L559.4,38.1L564.3,40.9L563.2,35.7L565.9,41L568.2,41.1L569.8,38.2L573.7,45.7L580.5,46.8L580.9,46.9Z" },
-  { id:"usaquen", name:"USAQUÉN", base:"#f6a821", cx:588.4, cy:142.5, fs:19, d:"M554.8,206.3L580.9,46.9L593.2,51L613.8,51.2L616.2,54.8L615.2,64L621.5,70.8L614.3,77.9L611,79.8L606,79.1L604.5,81.4L602.2,90.1L602.7,104L598.5,113L598.5,117.7L610.1,128.5L609.4,134.1L612,142.9L610.8,167.6L612.4,172.3L609.2,173.6L604.1,194.2L607.7,198.6L606.5,201.1L607.6,209.7L616,215.2L617.6,219L616.9,223L611.2,231.2L608,233L606.7,230.1L603.8,229.6L604.8,226.2L598.7,221.2L593,218.9L585.4,219.2L584.4,217.2L560.6,207.4L554.8,206.3Z" },
-  { id:"engativa", name:"ENGATIVÁ", base:"#e2543a", cx:490.7, cy:189.7, fs:16, d:"M474.4,148.3L475.9,145.1L482.1,145.8L483.3,148.8L489.1,151.3L489.7,154.3L495.9,159.6L501.1,161.5L501.3,163.8L505.3,166.6L505.7,170.1L509.6,171.2L513.4,178.1L516.3,179.1L519.6,184.7L519.1,192.8L522,194.2L523.4,197.6L527.7,199L531.8,208L522.8,215.4L501.9,244.6L481.9,213L477.6,208.6L484.7,204.2L482.5,200.1L443,170.9L441.2,171.4L436.6,167.9L437,164.4L439.4,161.8L441,164.2L447.2,165L450.1,161.4L463,155.8L465,158.6L470.8,155.7L473,160.4L476,157L473.5,152.1L474.5,148.3L474.4,148.3Z" },
-  { id:"fontibon", name:"FONTIBÓN", base:"#37a9d4", cx:459.8, cy:216.1, fs:16, d:"M442.2,170.5L482.5,200.1L484.7,204.2L477.6,208.6L481.9,213L501.9,244.6L484.8,263.1L478.5,259.2L476.4,254.1L472.4,250.3L468.8,249.9L463.3,238.5L458.9,233.9L454.5,235.7L447.2,232.4L443.3,232.2L440.4,235.4L435.8,231.7L436.3,229L425.4,226.5L425.8,223.6L429.7,221.9L432.3,224.2L434.3,219.6L439.8,217.1L440.5,214.9L437,210.8L434.5,213L436.8,216.1L431.8,219.1L430.3,216.3L426.1,219.5L424.4,217.4L423.8,220.7L420,218.1L421.4,211.1L428.3,204.9L422.9,197.6L426.5,190.2L420.4,190.5L417.6,188L434.9,184.4L434.6,182.8L436.6,181.8L441.5,181.9L443,179.1L442.1,171.7L442.2,170.5Z" },
-  { id:"barrios_unidos", name:"B. UNIDOS", base:"#37a9d4", cx:535.8, cy:226.3, fs:12, d:"M554.8,206.3L546.4,249.1L525.7,245.3L522.8,243.5L513,230.2L522.8,215.4L538.9,203.4L554.8,206.3L554.8,206.3Z" },
-  { id:"chapinero", name:"CHAPINERO", base:"#e2543a", cx:578.2, cy:254.4, fs:14, d:"M554.8,206.3L565,208.4L584.4,217.2L585.5,219.3L595.6,219.9L604.8,226.2L603.8,229.6L606.7,230.1L608,233L604.1,232.6L598.1,235.5L592.1,234.7L591.1,241.1L587.2,244.5L588.4,249.9L584.3,254.4L587.5,256.7L609.7,261.5L608.3,268.9L609.6,275.9L612.5,276.8L616.2,275L621.2,275.2L629,271.5L635.4,271L635.8,273L630.2,280.2L630.5,285.6L626.8,289.8L616.2,287.2L611.5,288.2L605,284.7L600,289.5L595.6,290.3L588.2,285.6L583.3,288.3L584.3,286.5L579.3,286L574.9,291.2L570.5,291.7L565.6,286.8L563.8,281.3L545.7,277.3L542,273L548.8,241.8L554.8,206.3Z" },
-  { id:"teusaquillo", name:"TEUSAQUILLO", base:"#37a9d4", cx:522.1, cy:258.7, fs:11, d:"M513,230.2L524.6,244.8L546.4,249.1L540.5,281.3L537,288.4L530.1,278.7L515.6,276.6L493.8,254.2L501.9,244.6L513,230.2Z" },
-  { id:"kennedy", name:"KENNEDY", base:"#3a4fb0", cx:445.5, cy:271.2, fs:19, d:"M438.7,234L440.4,235.4L443.3,232.2L446.9,232.3L454.5,235.7L458.9,233.9L463.3,238.5L468.8,249.9L472.4,250.3L476.4,254.1L478.5,259.2L484.8,263.1L477.7,278.6L472.5,295.5L462.5,312L445.9,311.1L448.9,310.9L445.9,305.4L434,298.9L427.2,301.3L425.5,305.5L421,306L420.4,304.6L422.3,302.5L419.2,302.2L418.8,304.7L416.9,305L418.6,302L418,300L415.7,299.9L417.1,298.8L417.2,294.9L411.9,289.7L414.7,287.3L411.8,289.3L411,286.5L408.2,288L408.1,284.5L414,284.9L418.1,278.5L416.6,272L407.6,252.1L411.6,249.6L414,245.6L422.9,240.4L428.3,241.3L429.9,237.3L432.4,238.8L434.4,233.3L438.4,234.2L438.7,234Z" },
-  { id:"bosa", name:"BOSA", base:"#37a9d4", cx:397.4, cy:281.3, fs:16, d:"M407.6,252.1L416.6,272L418.1,278.5L414,284.9L408.1,284.5L408.3,288.1L411,286.5L411.8,289.3L414.7,287.3L411.9,289.7L417.2,294.9L417.1,298.8L415.7,299.9L418,300L418.6,302L416.7,304.9L418.8,304.7L419.2,302.2L422.3,302.5L420.4,304.6L421,306L425.5,305.5L427.2,301.3L433.4,298.9L438,300L446,305.6L433.2,311.1L409.6,310.3L386.5,305.3L386.3,306.8L370.2,287.5L370.1,285.6L366.3,284.4L367.3,283.2L365.5,281.8L367.5,279.6L364.2,276.9L366.7,271.6L373,271.4L371.1,265.8L374.3,263.3L373.1,260.1L368.2,258.2L366.8,255.5L373.4,255.2L375.7,259.7L383.1,259.4L384.9,257.5L383.4,252.6L390.2,255.7L387.8,252.7L394.8,248.1L398.6,242.7L406.3,247L409.9,245.5L407.6,252L407.6,252.1Z" },
-  { id:"puente_aranda", name:"PUENTE ARANDA", base:"#e2543a", cx:492.5, cy:287.4, fs:11, d:"M484.8,263.1L493.8,254.2L515.6,276.6L525.1,277.7L504.1,303.2L497.7,308.2L481.9,313.3L470.6,313.8L462.5,312L472.5,295.5L477.7,278.6L484.7,263.3L484.8,263.1Z" },
-  { id:"martires", name:"MÁRTIRES", base:"#f6a821", cx:519.5, cy:297.9, fs:10, d:"M537,288.4L532.5,296.9L518.4,315.6L506.9,312L502.1,312.3L497.7,308.2L506.8,300.4L525.1,277.7L530.1,278.7L536.8,288.2L537,288.4Z" },
-  { id:"candelaria", name:"CANDELARIA", base:"#f6a821", cx:537.8, cy:310.1, fs:9, d:"M544.6,302.5L549,302.4L552.5,304.6L545.9,307.2L546.3,309.1L544.4,309.3L542.2,313.5L542.1,317.8L539.5,316L537.1,318.8L529,316.4L527.1,312.4L532.6,303.7L539,305.4L544.5,302.5L544.6,302.5Z" },
-  { id:"santa_fe", name:"SANTAFÉ", base:"#37a9d4", cx:577, cy:312.9, fs:12, d:"M542,273L545.7,277.3L563.8,281.3L565.6,286.8L570.5,291.7L574.9,291.2L579.3,286L584.3,286.5L583.3,288.3L588.2,285.6L595.6,290.3L600,289.5L605,284.7L611.5,288.2L616.2,287.2L626.7,289.7L626.8,295.1L624.3,298.9L627.6,305.5L621.3,314.6L617.2,315.2L618.6,318.5L616.2,321L613.5,330.7L615.3,336.3L612.6,345.8L612.8,352.8L599.7,351.8L596.4,353L594.8,356.6L592.9,357L587.2,354.1L586.8,349.8L583.2,343.6L584.1,339.9L581.8,337.8L579,339.3L578.1,338.1L570.4,338.4L564.3,336.6L550.8,329.9L544.5,325L540.2,332.6L538.4,333.1L537.8,331.7L535.6,333.4L527.8,322.5L518.4,315.6L533.2,295.7L540.3,281.9L541.9,274L542,273ZM544.6,302.5L539,305.4L532.6,303.7L527.1,312.4L528.6,316.2L537.1,318.8L539.5,316L542.2,317.7L542.2,313.5L544.4,309.3L546.3,309.1L546.1,307L552.5,304.7L549,302.4L544.6,302.5L544.6,302.5Z" },
-  { id:"antonio_narino", name:"A. NARIÑO", base:"#e2543a", cx:502.2, cy:319, fs:9, d:"M470.6,313.8L481.9,313.3L497.7,308.2L502.1,312.3L506.9,312L516.5,314.7L523.1,318.4L512,334L502.8,327.6L495.6,318.5L486.5,319.4L477.8,317.7L470.6,313.8L470.6,313.8Z" },
-  { id:"tunjuelito", name:"TUNJUELITO", base:"#f6a821", cx:464.5, cy:334.8, fs:11, d:"M462.5,312L473.4,314.6L473,321.5L470.4,322.4L476.9,341.1L475.3,344.7L481.1,356.5L481.6,368.9L473.3,369.4L472.1,367.3L474.9,366.8L475.7,368.1L476.7,366.5L474.8,364.1L468.9,363.7L467.8,356.5L465.4,355.4L466.9,355.1L467,351.4L459.5,346.4L459.4,342.6L458,342L459.4,340.1L456.3,337.6L458.9,333.7L457,332.2L454.4,337.2L452.5,335.1L451.4,336.3L451.9,333.2L448.5,331.1L449.3,327.5L451.7,326.9L450.2,325.3L447.2,326.2L447.8,323.9L446,322.9L447.9,320L445.5,319.1L446.5,320.6L445,321.8L444.7,320.1L440.5,319.1L443.6,316.2L446.9,316L446.1,314.1L443.7,314.4L445.9,311.1L459.5,311.5L462.5,312Z" },
-  { id:"rafael_uribe", name:"RAFAEL URIBE", base:"#37a9d4", cx:490.4, cy:344.6, fs:11, d:"M512,334L498.6,347.7L503.8,356.9L502.2,367.2L503.2,368.3L501.6,368.8L507.9,381L491.6,373.2L491.4,374.7L487.1,374.4L481.6,368.9L481.1,356.4L475.2,344.5L476.9,341.1L470.4,322.4L473,321.5L473.4,314.6L477.8,317.7L486.5,319.4L495.6,318.5L502.8,327.6L507,330.4L512,334Z" },
-  { id:"san_cristobal", name:"SAN CRISTÓBAL", base:"#e2543a", cx:544.6, cy:365, fs:13, d:"M587.2,354.1L586.7,366.5L584.2,370.3L583.9,375.8L579.6,380.2L576,389.7L571.7,409L562.4,408L556.3,411.5L550,407.6L543.2,409.7L541.4,407.4L539.8,408L538.1,398.7L541.9,388.3L535.8,387.5L530.2,390.1L532.7,384.5L531.3,383.9L529.6,386.6L529.1,384.2L526.8,386.4L528.5,390.6L525.5,389.2L519.8,397.4L526.6,400.6L516.1,398.5L517.8,401.5L511.6,401.3L513.4,394.3L510.7,377.4L509.3,375.2L507.8,375.9L508.3,373.5L506.1,369.9L502.2,367.2L503.8,356.9L498.6,347.7L512,334L523.1,318.4L527.8,322.5L535.6,333.4L537.8,331.7L538.4,333.1L540.2,332.6L544.5,325L550.8,329.9L564.3,336.6L570.4,338.4L578.1,338.1L579,339.3L581.8,337.8L584.1,339.9L583.2,343.6L586.8,349.8L587.3,353.8L587.2,354.1Z" },
-  { id:"ciudad_bolivar", name:"CIUDAD BOLÍVAR", base:"#e2543a", cx:434.9, cy:441.4, fs:13, d:"M446,306.4L448.9,311.1L446.5,310.3L443.7,314.4L446.1,314.1L446.9,316L443.6,316.2L440.5,319.1L444.7,320.1L445,321.8L446.5,320.6L445.5,319.1L447.9,320L446,322.9L447.8,323.9L447.2,326.2L450.2,325.3L451.7,326.9L449.3,327.5L448.5,331.1L451.9,333.2L451.4,336.3L452.5,335.1L454.4,337.2L457,332.2L458.9,333.7L456.3,337.6L459.4,340.1L458,342L459.4,342.6L459.5,346.4L467,351.4L466.9,355.1L465.4,355.4L467.8,356.5L468.9,363.7L474.8,364.1L476.7,366.5L475.7,368.1L474.9,366.8L471.4,368L477.3,370.3L479.4,384L479.2,389.6L472.6,393L476.5,398L474.5,408.8L475.2,414L473.2,415.9L475,419.6L479.8,421.5L481.3,429.2L479.3,430.9L482.4,431.6L480.8,439.3L477.7,445.2L473.2,449.6L471.1,448.3L463.7,459.9L462,460.4L462.7,462.8L460.5,469.4L455.1,480.6L457,497L455.5,498.2L454.5,511.2L455.7,513.1L454.2,518.7L456.2,526.7L455.1,533.2L458.7,545.2L456.8,550.2L447.1,550.8L438.7,547.4L434,548.1L428.1,553.2L418,549.2L412.3,554.9L396.9,550.9L387.8,552.1L378.7,551.2L376.2,541.3L382.3,530.1L381.8,527.1L386.5,519.5L387.3,513.8L392.5,505.8L397.8,505.3L397.2,496.1L401.6,487L402.1,481.8L406.8,476L406.7,468.9L410.3,460.7L411.2,444.1L416.4,436.8L415,432.3L415.5,425.1L412.4,416.4L421.7,412.1L418.5,406.7L411.6,406.2L410.4,389.6L404.8,383.4L409.6,380.1L417.1,378.1L421.9,373.9L418.3,368.5L421.3,361.8L417.5,359.2L418.3,351.6L415.8,340.5L419.4,338.6L419.8,334.9L416.8,331.9L414.5,332L413.1,320.1L409.8,310.3L430.6,311.1L438.5,309.6L446,306.4Z" },
-  { id:"usme", name:"USME", base:"#3a4fb0", cx:456.7, cy:547.6, fs:18, d:"M475.9,369.6L481.6,368.9L487.1,374.4L491.4,374.7L491.6,373.2L507.9,381L501.6,368.8L505.3,369.2L508.3,373.5L507.8,375.9L509.3,375.2L510.7,377.4L513.3,393.8L512.2,401.6L517.8,401.5L516.1,398.5L526.6,400.6L519.8,397.4L525.5,389.2L528.5,390.6L526.6,387.1L529.1,384.2L529.5,386.6L530.6,384L532.7,384.5L530.2,390.1L535.7,387.5L540.5,387.3L541.9,388.9L538,400L539.6,407.8L541.4,407.4L542.1,409.7L550,407.6L556.3,411.5L552.6,424.5L545.8,436.7L541.4,436.2L534.1,438.9L533.2,451.5L534.4,456.3L532.1,460.3L532.3,465.1L529.2,465.2L527.1,469.2L523.5,470.9L517.2,468.1L513.6,471.7L502.1,475.9L499.2,482.8L495.4,486.4L492,495.5L490.8,517.6L489.3,521L490.7,525.1L488.9,529.1L489,538.8L490.8,542.7L490,551.6L493,552.3L500,560.8L506.8,560.5L507.3,565.8L511.3,570.7L512.2,577.3L508.4,585.1L507.5,598.3L503,606.3L499.8,608.8L500.9,613.4L497.8,622.3L493.2,623.7L492,627.8L489.4,630.3L489.1,635.5L477.8,643.5L468.7,644.1L462.9,646.2L437.7,669.1L425.7,671.4L407.9,671.9L404.7,670.7L397,662.5L388.9,670.9L385.5,678.6L384.5,686L377.2,681.6L372.6,682.1L372,677.8L367,671.6L372.7,666.2L374.8,646.5L370,619.7L370.6,610.6L368.5,604.8L366.9,577.5L371.5,574.1L377.2,565.7L374.9,563.3L378.8,556.7L378.7,551.2L387.8,552.1L396.9,550.9L412.3,554.9L417.2,549.3L428.1,553.2L434,548.1L438.7,547.4L447.1,550.8L456.8,550.2L458.5,545.8L455.1,533.2L456.2,526.7L454.2,518.7L455.7,513.1L454.5,511.2L455.5,498.2L457,497L455.1,480.6L460.5,469.4L462.7,462.8L462,460.4L463.7,459.9L471.1,448.3L473.2,449.6L477.7,445.2L480.8,439.3L482.4,431.7L479.3,430.9L481.3,429.2L479.8,421.5L475,419.6L473.2,415.9L475.2,414L474.5,408.8L476.5,398L472.6,393L479.2,389.6L479.3,387.6L477.3,370.5L476,369.7L475.9,369.6Z" },
-  { id:"sumapaz", name:"SUMAPAZ", base:"#e2543a", cx:941, cy:671, fs:12, inset:true, d:"M906,648h70v46h-70Z" },
-];
-
-const STORAGE_KEY = 'alertaBarrio.data';
-let data = {};
-try { const raw = localStorage.getItem(STORAGE_KEY); data = raw ? JSON.parse(raw) : {}; } catch(e){ data = {}; }
-function getEntry(id){ if(!data[id]) data[id]={ratings:[],comments:[]}; return data[id]; }
-function save(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }catch(e){ console.error(e); } }
-function avg(id){ const r=getEntry(id).ratings; return r.length ? r.reduce((a,b)=>a+b,0)/r.length : 0; }
-function getCss(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
-function heatColor(a){ if(a===0) return getCss('--c0'); if(a<=3) return getCss('--c1'); if(a<=6) return getCss('--c2'); return getCss('--c3'); }
-
-const NS='http://www.w3.org/2000/svg';
-const svg=document.getElementById('mapSvg');
-function svgEl(tag, attrs){ const n=document.createElementNS(NS,tag); for(const k in attrs) n.setAttribute(k,attrs[k]); return n; }
-
-function renderMap(){
-  svg.innerHTML='';
-  LOCALIDADES.forEach(loc=>{
-    const a=avg(loc.id);
-    const fill = getEntry(loc.id).ratings.length ? heatColor(a) : loc.base;
-    const path=svgEl('path',{ d:loc.d, fill, class:'loc', 'data-id':loc.id, tabindex:'0', role:'button' });
-    path.setAttribute('aria-label', loc.name+' — abrir detalle');
-    path.addEventListener('click', ()=>openPanel(loc.id));
-    path.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openPanel(loc.id); } });
-    const title=svgEl('title',{}); title.textContent=loc.name.charAt(0)+loc.name.slice(1).toLowerCase(); path.appendChild(title);
-    svg.appendChild(path);
-    // Solo etiquetamos en el mapa las localidades con espacio suficiente (fs>=12);
-    // las pequeñas del centro se ven al pasar el cursor y en el ranking, para no saturar.
-    if(loc.fs>=12){
-      const label=svgEl('text',{ x:loc.cx, y:loc.cy, class:'loc-label', 'font-size':loc.fs, 'dominant-baseline':'middle' });
-      label.textContent=loc.name;
-      svg.appendChild(label);
-    }
-  });
-  markSelected();
-}
-
-function renderRanking(){
-  const list=document.getElementById('rankingList');
-  const sorted=[...LOCALIDADES].sort((a,b)=>avg(b.id)-avg(a.id));
-  list.innerHTML=sorted.map((loc,i)=>{
-    const a=avg(loc.id);
-    return `<li data-id="${loc.id}">
-      <span class="rank">${i+1}</span>
-      <span class="name">${loc.name.charAt(0)+loc.name.slice(1).toLowerCase()}</span>
-      <span class="val" style="color:${a?heatColor(a):'var(--dim)'}">${a?a.toFixed(1):'—'}</span>
-      <div class="bar-track"><div class="bar-fill" style="width:${a*10}%; background:${heatColor(a)};"></div></div>
-    </li>`;
-  }).join('');
-  list.querySelectorAll('li').forEach(li=>li.addEventListener('click',()=>openPanel(li.dataset.id)));
-}
-
-function renderStats(){
-  let totalReports=0, sum=0, withData=0;
-  LOCALIDADES.forEach(loc=>{ const r=getEntry(loc.id).ratings; totalReports+=r.length; if(r.length){ sum+=avg(loc.id); withData++; } });
-  document.getElementById('statReports').textContent=totalReports;
-  document.getElementById('statAvg').textContent=withData?(sum/withData).toFixed(1):'—';
-}
-
-const overlay=document.getElementById('overlay');
-let currentId=null;
-function markSelected(){ svg.querySelectorAll('.loc').forEach(p=>p.classList.toggle('sel', p.dataset.id===currentId)); }
-function openPanel(id){
-  currentId=id;
-  const loc=LOCALIDADES.find(l=>l.id===id);
-  const entry=getEntry(id);
-  const a=avg(id);
-  document.getElementById('panelName').textContent=loc.name.charAt(0)+loc.name.slice(1).toLowerCase();
-  document.getElementById('panelScore').textContent=a?a.toFixed(1):'0';
-  document.getElementById('panelScore').style.color=a?heatColor(a):'var(--ink)';
-  document.getElementById('panelCount').textContent=entry.ratings.length+' reportes';
-  document.getElementById('riskRange').value=5;
-  document.getElementById('riskVal').textContent=5;
-  document.getElementById('commentText').value='';
-  renderComments(id);
-  overlay.classList.add('open');
-  markSelected();
-}
-function closePanel(){ overlay.classList.remove('open'); currentId=null; markSelected(); }
-document.getElementById('closeBtn').addEventListener('click', closePanel);
-overlay.addEventListener('click', e=>{ if(e.target===overlay) closePanel(); });
-document.addEventListener('keydown', e=>{ if(e.key==='Escape' && overlay.classList.contains('open')) closePanel(); });
-
-const riskRange=document.getElementById('riskRange');
-riskRange.addEventListener('input', ()=>{ document.getElementById('riskVal').textContent=riskRange.value; });
-document.getElementById('submitRating').addEventListener('click', ()=>{
-  if(!currentId) return;
-  getEntry(currentId).ratings.push(parseInt(riskRange.value));
-  save();
-  const a=avg(currentId);
-  document.getElementById('panelScore').textContent=a.toFixed(1);
-  document.getElementById('panelScore').style.color=heatColor(a);
-  document.getElementById('panelCount').textContent=getEntry(currentId).ratings.length+' reportes';
-  renderMap(); renderRanking(); renderStats();
-});
-
-function renderComments(id){
-  const entry=getEntry(id);
-  const list=document.getElementById('commentList');
-  const empty=document.getElementById('commentEmpty');
-  const sorted=[...entry.comments].sort((a,b)=>b.date.localeCompare(a.date));
-  list.innerHTML=sorted.map(c=>`<li>${escapeHtml(c.text)}<div class="meta">${escapeHtml(c.date)}</div></li>`).join('');
-  empty.style.display=entry.comments.length?'none':'block';
-}
-function escapeHtml(str){ const d=document.createElement('div'); d.textContent=str; return d.innerHTML; }
-document.getElementById('submitComment').addEventListener('click', ()=>{
-  if(!currentId) return;
-  const ta=document.getElementById('commentText');
-  const text=ta.value.trim();
-  if(!text) return;
-  getEntry(currentId).comments.push({ text, date:new Date().toLocaleString('es-CO') });
-  save(); ta.value=''; renderComments(currentId);
-});
-
-renderMap(); renderRanking(); renderStats();
-</script>
+<script src="assets/data.js"></script>
+<script src="assets/map.js"></script>
+<script>AlertaData.seedIfEmpty(); AlertaMap.init({ city: 'bogota' });</script>
 </body>
 </html>

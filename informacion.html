@@ -9,130 +9,17 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📍</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --bg:#f4f5f2; --panel:#ffffff; --panel2:#f3f1eb; --ink:#181614; --dim:#6b665d; --line:#e4e0d6;
-    --yellow:#f5c518; --yellow-dk:#d9a800; --red:#d62828; --red-dk:#a81e1e; --black:#181614; --brand:#181614;
-    --map-yellow:#f6a821; --map-blue:#3a4fb0; --map-red:#e2543a; --map-cyan:#37a9d4;
-    --c0:#efede6; --c1:#fbe9a6; --c2:#f5c518; --c3:#d62828;
-    --shadow:0 14px 40px rgba(24,22,20,.13); --shadow-sm:0 3px 10px rgba(24,22,20,.07);
-    --radius:16px;
-  }
-  *{box-sizing:border-box;}
-  html{scroll-behavior:smooth;}
-  body{margin:0; background:var(--bg); color:var(--ink);
-    font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-    -webkit-font-smoothing:antialiased; line-height:1.55;}
-  a{color:inherit;}
-
-  header.site{position:sticky; top:0; z-index:15; background:rgba(255,255,255,.92); backdrop-filter:blur(8px); border-bottom:1px solid var(--line);}
-  .nav{max-width:1180px; margin:0 auto; display:flex; align-items:center; gap:18px; padding:12px 22px;}
-  .brand{display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--ink);}
-  .brand .pin{width:34px; height:34px; border-radius:9px; background:var(--red); color:#fff; display:grid; place-items:center; font-size:18px; box-shadow:var(--shadow-sm);}
-  .brand b{font-family:'Archivo Black',sans-serif; font-size:18px; letter-spacing:.4px;}
-  .nav .links{margin-left:auto; display:flex; align-items:center; gap:6px;}
-  .nav .links a{text-decoration:none; color:var(--dim); font-weight:600; font-size:14px; padding:8px 13px; border-radius:8px; transition:.15s;}
-  .nav .links a:hover{color:var(--ink); background:var(--panel2);}
-  .nav .links a.active{color:#fff; background:var(--brand);}
-  .flagbar{height:6px; display:flex;}
-  .flagbar span{flex:1;} .flagbar .y{background:var(--yellow);} .flagbar .r{background:var(--red);}
-
-  .hero{background:linear-gradient(135deg,#181614,#2a2622 65%,#3a3430); color:#fff;}
-  .hero .inner{max-width:1180px; margin:0 auto; padding:52px 22px; text-align:center;}
-  .hero .badge{display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.16); padding:6px 13px; border-radius:999px; font-size:12.5px; font-weight:600; color:#f0ece3; margin-bottom:16px;}
-  .hero .badge .d{width:8px;height:8px;border-radius:50%;background:var(--yellow);box-shadow:0 0 0 4px rgba(245,197,24,.22);}
-  .hero h1{font-family:'Archivo Black',sans-serif; font-size:clamp(26px,4.6vw,44px); margin:0 0 12px; letter-spacing:.4px;}
-  .hero h1 .hl{color:var(--yellow);}
-  .hero p{color:#d3cec4; font-size:clamp(15px,2vw,17px); max-width:640px; margin:0 auto;}
-  .hero .stats{display:flex; justify-content:center; gap:40px; margin-top:30px; flex-wrap:wrap;}
-  .hero .stat b{font-family:'Archivo Black',sans-serif; font-size:30px; display:block; line-height:1;}
-  .hero .stat span{font-size:11.5px; color:#b3ada2; text-transform:uppercase; letter-spacing:.7px;}
-
-  main{max-width:1180px; margin:0 auto; padding:34px 22px 20px;}
-  .map-section{display:grid; grid-template-columns:1.6fr 1fr; gap:22px; align-items:start;}
-  @media (max-width:900px){ .map-section{grid-template-columns:1fr;} }
-
-  .card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow-sm);}
-  .card > h2{font-family:'Archivo Black',sans-serif; font-size:17px; margin:0 0 4px; display:flex; align-items:center; gap:9px;}
-  .hint{color:var(--dim); font-size:13px; margin:0 0 14px;}
-  .legend{display:flex; gap:16px; font-size:12.5px; color:var(--dim); flex-wrap:wrap; margin-top:14px; border-top:1px solid var(--line); padding-top:14px;}
-  .legend span{display:flex; align-items:center; gap:6px;}
-  .dot{width:12px; height:12px; border-radius:3px; display:inline-block; border:1px solid rgba(0,0,0,.12);}
-
-  #mapWrap{width:100%; background:radial-gradient(120% 100% at 50% 0%, #ffffff, #eef0e9); border-radius:12px; overflow:hidden; border:1px solid var(--line); padding:6px;}
-  svg#mapSvg{width:100%; height:auto; display:block;}
-  .loc{stroke:#12100e; stroke-width:2.4; stroke-linejoin:round; stroke-linecap:round; cursor:pointer; transition:filter .12s ease;}
-  .loc:hover{filter:brightness(1.09) drop-shadow(0 3px 5px rgba(0,0,0,.3));}
-  .loc.main{stroke-width:4.5;}
-  .loc.sel{stroke-width:5.5;}
-  .loc-label{font-family:'Archivo Black',sans-serif; fill:#fff; paint-order:stroke; stroke:rgba(0,0,0,.4); stroke-width:.7; pointer-events:none; text-anchor:middle; letter-spacing:.2px;}
-
-  ul.ranking{list-style:none; margin:0; padding:0;}
-  ul.ranking li{display:grid; grid-template-columns:22px 1fr auto; align-items:center; column-gap:10px; row-gap:4px; padding:7px 0; border-bottom:1px solid var(--line); font-size:13.5px; cursor:pointer;}
-  ul.ranking li:last-child{border-bottom:none;}
-  ul.ranking li:hover .name{color:var(--red);}
-  ul.ranking .rank{font-family:'Archivo Black',sans-serif; color:var(--dim); font-size:12px;}
-  ul.ranking .name{font-weight:600;}
-  ul.ranking .val{font-family:'Archivo Black',sans-serif; font-size:14px;}
-  ul.ranking .bar-track{grid-column:2/-1; height:6px; background:var(--panel2); border-radius:3px; overflow:hidden;}
-  ul.ranking .bar-fill{height:100%; border-radius:3px; transition:width .3s ease;}
-
-  .info-section{max-width:1180px; margin:0 auto; padding:26px 22px 8px;}
-  .info-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px;}
-  @media (max-width:820px){ .info-grid{grid-template-columns:1fr;} }
-  .info-card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:22px; box-shadow:var(--shadow-sm);}
-  .info-card .ic{width:44px;height:44px;border-radius:11px;display:grid;place-items:center;font-size:22px;margin-bottom:12px;}
-  .ic-y{background:rgba(246,168,33,.16);} .ic-r{background:rgba(226,84,58,.16);} .ic-c{background:rgba(55,169,212,.16);}
-  .info-card h3{font-family:'Archivo Black',sans-serif; font-size:16px; margin:0 0 6px;}
-  .info-card p{color:var(--dim); font-size:14px; margin:0;}
-
-  .cta-band{max-width:1180px; margin:40px auto 0; padding:0 22px;}
-  .cta-inner{background:linear-gradient(120deg,var(--red),#b02020); color:#fff; border-radius:22px; padding:38px 26px; text-align:center; box-shadow:var(--shadow);}
-  .cta-inner h2{font-family:'Archivo Black',sans-serif; font-size:clamp(20px,3vw,28px); margin:0 0 8px;}
-  .cta-inner p{margin:0 auto 20px; max-width:520px; color:#ffe4e0;}
-  .btn{display:inline-flex; align-items:center; gap:9px; text-decoration:none; font-weight:700; font-size:15px; padding:13px 24px; border-radius:11px; transition:.16s;}
-  .btn-white{background:#fff; color:var(--red);} .btn-white:hover{background:#f4f0ea;}
-
-  .overlay{position:fixed; inset:0; background:rgba(24,22,20,.55); display:none; align-items:flex-end; justify-content:center; z-index:40; backdrop-filter:blur(2px);}
-  .overlay.open{display:flex;}
-  .panel{background:var(--panel); width:100%; max-width:520px; border-radius:16px 16px 0 0; padding:22px 20px calc(26px + env(safe-area-inset-bottom,0px)); max-height:90vh; overflow-y:auto; border-top:5px solid var(--red); animation:slideUp .22s ease;}
-  @keyframes slideUp{from{transform:translateY(28px);opacity:.6;}to{transform:none;opacity:1;}}
-  @media (min-width:640px){ .overlay{align-items:center;} .panel{border-radius:14px;} }
-  .panel-head{display:flex; justify-content:space-between; align-items:flex-start; gap:12px;}
-  .panel-head h2{font-family:'Archivo Black',sans-serif; font-size:21px; margin:0;}
-  .panel-head .loc-sub{color:var(--dim); font-size:12.5px; margin-top:2px;}
-  .close{background:var(--panel2); border:none; color:var(--dim); font-size:16px; cursor:pointer; width:32px; height:32px; border-radius:8px; flex-shrink:0;}
-  .close:hover{color:var(--ink); background:var(--line);}
-  .score-row{display:flex; align-items:baseline; gap:8px; margin:16px 0 20px; padding:14px 16px; background:var(--panel2); border-radius:10px;}
-  .score-row .big{font-family:'Archivo Black',sans-serif; font-size:40px; line-height:1;}
-  .score-row .of{color:var(--dim); font-size:14px;}
-  .score-row .count{color:var(--dim); font-size:12.5px; margin-left:auto; text-align:right;}
-  label{display:block; font-size:12.5px; color:var(--dim); margin:0 0 8px; font-weight:600;}
-  input[type=range]{width:100%; accent-color:var(--red);}
-  .rangeval{font-family:'Archivo Black',sans-serif; font-size:22px; text-align:center; margin:6px 0 12px;}
-  button.primary{width:100%; background:var(--red); color:#fff; border:none; border-radius:9px; padding:12px; font-weight:700; font-size:14px; cursor:pointer; margin-bottom:22px; transition:.15s;}
-  button.primary:hover{background:var(--red-dk);}
-  h3.sub{font-size:12.5px; text-transform:uppercase; letter-spacing:.6px; color:var(--dim); margin:0 0 10px;}
-  textarea{width:100%; background:var(--panel2); border:1px solid var(--line); color:var(--ink); border-radius:9px; padding:10px 11px; font-family:inherit; font-size:14px; resize:vertical; min-height:58px;}
-  button.secondary{background:var(--yellow); color:var(--black); border:1px solid var(--yellow-dk); border-radius:9px; padding:9px 15px; font-size:13px; font-weight:700; cursor:pointer; margin-top:8px;}
-  button.secondary:hover{background:var(--yellow-dk);}
-  ul.comments{list-style:none; margin:14px 0 0; padding:0;}
-  ul.comments li{border-top:1px solid var(--line); padding:11px 0; font-size:13.5px;}
-  ul.comments li .meta{color:var(--dim); font-size:11.5px; margin-top:3px;}
-  .empty{color:var(--dim); font-size:13px; padding:6px 0 0;}
-
-  footer{border-top:1px solid var(--line); background:var(--panel); margin-top:44px;}
-  .foot{max-width:1180px; margin:0 auto; padding:26px 22px; display:flex; flex-wrap:wrap; gap:12px; justify-content:space-between; align-items:center; color:var(--dim); font-size:12.5px;}
-</style>
+<link rel="stylesheet" href="assets/app.css">
 </head>
 <body>
+<a href="#mapWrap" class="skip-link">Saltar al mapa</a>
 <header class="site">
   <div class="nav">
     <a class="brand" href="index.html"><span class="pin">📍</span><b>ALERTA BARRIO</b></a>
-    <nav class="links">
+    <nav class="links" aria-label="Principal">
       <a href="index.html">Inicio</a>
       <a href="alerta-barrio.html">Bogotá</a>
-      <a href="informacion.html" class="active">Chía</a>
+      <a href="informacion.html" class="active" aria-current="page">Chía</a>
       <a href="reportes.html">Reportes en vivo</a>
     </nav>
   </div>
@@ -143,7 +30,7 @@
   <div class="inner">
     <span class="badge"><span class="d"></span> Percepción ciudadana · Sabana Centro</span>
     <h1>Mapa del <span class="hl">riesgo</span> en Chía y sus vecinos</h1>
-    <p>Chía y los municipios que la rodean en la Sabana Centro de Cundinamarca. Cada zona se colorea según la percepción de riesgo de la comunidad. Haz clic en un municipio para calificarlo y dejar tu reporte.</p>
+    <p>Chía y los municipios que la rodean en la Sabana Centro de Cundinamarca. Cada zona se colorea según la percepción de la comunidad y los reportes recientes. Haz clic en un municipio para calificarlo y dejar tu reporte.</p>
     <div class="stats">
       <div class="stat"><b id="statZones">9</b><span>Municipios</span></div>
       <div class="stat"><b id="statReports">0</b><span>Reportes</span></div>
@@ -157,8 +44,8 @@
     <div class="card">
       <h2>🗺️ Chía y municipios vecinos</h2>
       <p class="hint">Mapa geográfico real de Chía (resaltada) y los municipios que la rodean. Cada zona es interactiva: haz clic para calificar el riesgo percibido (1–10) y dejar comentarios.</p>
-      <div id="mapWrap"><svg id="mapSvg" viewBox="0 0 760 620" role="img" aria-label="Mapa de Chía y municipios vecinos"></svg></div>
-      <div class="legend">
+      <div id="mapWrap"><svg id="mapSvg" role="img" aria-label="Mapa interactivo de Chía y municipios vecinos"></svg></div>
+      <div class="legend" aria-hidden="true">
         <span><i class="dot" style="background:var(--c0)"></i>Sin datos</span>
         <span><i class="dot" style="background:var(--c1)"></i>Bajo (1–3)</span>
         <span><i class="dot" style="background:var(--c2)"></i>Medio (4–6)</span>
@@ -176,29 +63,17 @@
 
 <section class="info-section">
   <div class="info-grid">
-    <div class="info-card">
-      <div class="ic ic-r">🏘️</div>
-      <h3>Chía en su contexto</h3>
-      <p>Chía forma parte de la Región Metropolitana de Bogotá; muchos de sus riesgos se relacionan con la movilidad hacia y desde municipios vecinos.</p>
-    </div>
-    <div class="info-card">
-      <div class="ic ic-y">⭐</div>
-      <h3>Califica y reporta</h3>
-      <p>Asigna una calificación de 1 a 10 al riesgo percibido y deja comentarios sobre situaciones puntuales, sin datos personales.</p>
-    </div>
-    <div class="info-card">
-      <div class="ic ic-c">📶</div>
-      <h3>Funciona sin conexión</h3>
-      <p>Todo se ejecuta en tu navegador y se guarda localmente. No necesita servidor ni instalación.</p>
-    </div>
+    <div class="info-card"><div class="ic ic-r">🏘️</div><h3>Chía en su contexto</h3><p>Chía forma parte de la Región Metropolitana de Bogotá; muchos de sus riesgos se relacionan con la movilidad hacia y desde municipios vecinos.</p></div>
+    <div class="info-card"><div class="ic ic-y">⭐</div><h3>Califica y reporta</h3><p>Asigna una calificación de 1 a 10 al riesgo percibido y deja comentarios sobre situaciones puntuales, sin datos personales.</p></div>
+    <div class="info-card"><div class="ic ic-c">🔄</div><h3>Se actualiza solo</h3><p>Los reportes en vivo recientes recolorean el mapa automáticamente.</p></div>
   </div>
 </section>
 
 <div class="cta-band">
   <div class="cta-inner">
-    <h2>Tu reporte suma</h2>
-    <p>Entre más personas califiquen y comenten, más útil es el mapa para toda la Sabana. Empieza tocando tu municipio.</p>
-    <a class="btn btn-white" href="#mapWrap">🗺️ Ir al mapa</a>
+    <h2>¿Viste algo? Repórtalo</h2>
+    <p>Publica un incidente en segundos y aparecerá en el feed y en el mapa al instante.</p>
+    <a class="btn btn-white" href="reportes.html">🚨 Ir a reportes en vivo</a>
   </div>
 </div>
 
@@ -209,7 +84,7 @@
   </div>
 </footer>
 
-<div class="overlay" id="overlay">
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="panelName">
   <div class="panel">
     <div class="panel-head">
       <div>
@@ -226,7 +101,9 @@
     <input type="range" id="riskRange" min="1" max="10" value="5">
     <div class="rangeval" id="riskVal">5</div>
     <button class="primary" id="submitRating">Enviar calificación</button>
-    <h3 class="sub">Comentarios</h3>
+    <h3 class="sub">Reportes recientes en la zona</h3>
+    <div id="panelRecent"></div>
+    <h3 class="sub" style="margin-top:16px;">Comentarios</h3>
     <textarea id="commentText" placeholder="Describe lo que observaste (sin datos personales)..."></textarea>
     <button class="secondary" id="submitComment">Agregar comentario</button>
     <ul class="comments" id="commentList"></ul>
@@ -234,134 +111,8 @@
   </div>
 </div>
 
-<script>
-/* ============================================================================
-   Alerta Barrio — Mapa interactivo de Chía y municipios vecinos.
-   Geometría REAL (fuente: TopoJSON Marco Geoestadístico Nacional, DANE).
-   Chía aparece resaltada; alrededor sus vecinos de la Sabana Centro.
-   ========================================================================== */
-const LOCALIDADES = [
-  { id:"cajica", name:"CAJICÁ", base:"#3a4fb0", cx:356.1, cy:256.9, fs:14, d:"M387.3,215.4L389.2,218.5L381.9,233.5L382.7,242L376.7,247.5L380,257.5L374.2,264.3L378.6,268.8L376.5,275.1L381.3,278.5L373.1,288.2L368.3,291L364,300.4L338.1,292.9L338.1,288.7L329.3,285.5L317.3,275.9L311.5,275L312.6,270.6L320,265.9L324.3,258.8L332.8,253.1L335,246L342.4,233.2L370.7,214.8L373.2,204.7L384.9,204.2L387.3,215.4Z" },
-  { id:"cota", name:"COTA", base:"#37a9d4", cx:267.4, cy:392.4, fs:14, d:"M306.7,347.8L303.1,349.9L309.7,360.1L302.6,361.2L302,365.9L308.8,373.2L300.7,378L301.8,384.8L296,390L293.9,382.1L284.8,384.2L282.1,392L275.6,395L275.9,408.5L273.7,417.5L265.7,425L261.2,432.6L265.2,448.3L254.1,447.1L243.2,452L235.8,452.3L242,448.4L242.6,437.1L234.9,434.2L230,428.9L239.6,416.1L231.9,403.9L236.1,394.7L245.6,380.1L258.1,367.9L271.8,366.2L279.1,350.9L290.6,341.2L294.7,335L302.1,336.5L311,342.4L306.7,347.8Z" },
-  { id:"la_calera", name:"LA CALERA", base:"#f6a821", cx:451.6, cy:475.7, fs:13, d:"M423.1,369.3L423.1,378.4L420.1,382.4L437.5,390.3L440.2,393.6L456.9,396.5L468.3,411.1L473.7,413.8L477.8,422.2L488.8,428.7L492.1,434L505.9,435L507.5,446L505.4,451.7L510.6,466.6L520.2,459.9L524.7,473.8L526.2,488.9L561.6,489.4L567.5,494.2L575.5,491.6L581,494.4L582.6,505.9L579.6,511.5L581.5,520.4L581.4,535.8L572.2,536.5L564.8,532.6L545,534L539.4,537.3L533.2,535.3L521.5,537L510.6,533.6L504.3,533.7L493.2,538.6L488.3,543.3L486.1,553.3L478.1,561.6L470.8,578.4L467.5,580L459.1,571.9L449.5,554.3L440,550.1L443.5,538.2L447.9,532.4L437,531.9L426.4,520L421.2,521.3L416.3,531.5L396.6,542L385.8,545.9L375.4,546.2L375.7,535.3L357.7,530.8L357.6,520L363.6,511.9L369.3,513L377.9,510.3L383.2,499.6L374.6,492.6L371,478.2L375.1,462L377.6,461.1L376.5,444.1L377.8,438.9L376.2,424.2L367,414.6L369.6,404.7L369.6,388.7L372.7,382.9L378.7,383.4L385.5,378.7L379.4,370.9L381.3,367L378.3,359L385.2,369L399.6,368.2L423.1,369.3Z" },
-  { id:"sopo", name:"SOPÓ", base:"#f6a821", cx:416.8, cy:297.3, fs:14, d:"M393.1,217.2L408.7,226.3L415.1,243.1L423.6,243.4L433.9,249.1L442.2,257.8L448.5,260.2L455.8,269L464.5,272.9L456.3,289.2L461.3,300.9L459.6,308.1L455,310.6L456,323.5L449.6,339.9L450.1,343.1L440.6,347.5L425,343.1L425.8,354.4L423.1,369.3L399.6,368.2L385.2,369L378.3,359L384.9,337.8L389.6,333.9L394.7,311.5L397.8,305.7L399.1,291.5L401.6,283.4L394.4,283.2L386.8,277.7L374.2,264.3L380,257.5L376.7,247.5L382.7,242L381.9,233.5L389.2,218.5L387.3,215.4L393.1,217.2Z" },
-  { id:"tabio", name:"TABIO", base:"#37a9d4", cx:304.6, cy:236.6, fs:13, d:"M353.5,225.8L342.4,233.2L335,246L332.8,253.1L324.3,258.8L320,265.9L312.6,270.6L306.6,292.3L297.1,293.3L288.6,286.9L278.6,287.4L272.8,283.1L262.2,281.4L261.1,274.2L272.3,264L276.7,247L277,237.4L281.9,224.5L282.1,212.2L284.9,202L284.6,190.2L287.6,182.9L297.7,184.7L301.5,180.1L309.1,184.3L323.3,185.2L321.4,195.8L323.9,201.2L336.7,206.7L338.6,211.2L346.8,214.4L353.5,225.8Z" },
-  { id:"tenjo", name:"TENJO", base:"#3a4fb0", cx:245.4, cy:344.4, fs:14, d:"M306.6,292.3L305.9,318.8L290.6,341.2L279.1,350.9L271.8,366.2L258.1,367.9L245.6,380.1L236.1,394.7L231.9,403.9L239.6,416.1L230,428.9L223.5,417.4L221,406.4L212.9,406L202.8,410.1L198.7,402.5L199.5,395.2L194.1,388.7L179.3,403L177.4,387.1L185.3,381L192.2,380L206.4,343.9L215.3,339.4L218.4,328.7L216.1,326.1L215.9,318.3L223.6,313.3L225.7,305.2L237.2,297.3L246.1,294.9L262.2,281.4L272.8,283.1L278.6,287.4L288.6,286.9L297.1,293.3L306.6,292.3Z" },
-  { id:"tocancipa", name:"TOCANCIPÁ", base:"#e2543a", cx:452.1, cy:220.5, fs:12, d:"M504.1,225.6L485.7,241.6L476.3,251.8L471.6,264L464.5,272.9L455.8,269L448.5,260.2L442.2,257.8L433.9,249.1L423.6,243.4L415.1,243.1L408.7,226.3L393.1,217.2L399,208.9L397.1,200.4L403.1,195.5L411,193.9L417.1,199.1L420.7,210.9L418.2,216.2L423.6,220.6L433.4,218.2L436.2,211.4L443,207.8L441.4,198.4L436.4,184.3L444.3,181.1L465.4,169.1L467.8,164.1L474,170.4L472.5,174.6L488.3,204.2L481.1,214L486.9,215.7L493.6,222.5L504.1,225.6Z" },
-  { id:"zipaquira", name:"ZIPAQUIRÁ", base:"#37a9d4", cx:362.8, cy:146.7, fs:13, d:"M341.1,40L349,51.7L347.5,60.7L360.6,63.5L369.4,68.3L377.8,69.6L378.6,74.8L369.4,87.7L378.7,94.9L375.4,108.1L365.8,118.2L365.2,131.3L362.3,138.5L357.6,142.1L359.2,147.6L371.2,144.2L388.8,145.7L398.6,149.7L412.1,149.2L419,152.5L430.9,148.3L432.9,155.7L445.7,149.2L450,153L466.2,161.4L467.8,164.1L465.4,169.1L444.3,181.1L436.4,184.3L441.4,198.4L443,207.8L436.2,211.4L433.4,218.2L423.6,220.6L418.2,216.2L420.7,210.9L417.1,199.1L411,193.9L403.1,195.5L397.1,200.4L399,208.9L393.1,217.2L387.3,215.4L384.9,204.2L373.2,204.7L370.7,214.8L353.5,225.8L346.8,214.4L338.6,211.2L336.7,206.7L323.9,201.2L321.4,195.8L323.3,185.2L309.1,184.3L301.5,180.1L302.6,165.6L308.9,152.1L299.8,142.9L294.2,131.9L295.7,126.7L299.5,128.7L305.9,124.1L311.8,108.1L310.4,101.3L311,77.1L318.2,69.1L314.3,54.4L320.9,44L331.5,50.4L341.1,40Z" },
-  { id:"chia", name:"CHÍA", base:"#e2543a", cx:349.6, cy:318.8, fs:22, main:true, d:"M378.3,359L375.9,361.2L354.7,358.8L335.1,350.2L331.4,353.6L324.9,349.9L317.3,353.8L313.5,346.2L306.7,347.8L311,342.4L302.1,336.5L294.7,335L305.9,318.8L306.6,292.3L311.5,275L317.3,275.9L329.3,285.5L338.1,288.7L338.1,292.9L364,300.4L368.3,291L373.1,288.2L381.3,278.5L376.5,275.1L378.6,268.8L386.8,277.7L394.4,283.2L401.6,283.4L399.1,291.5L397.8,305.7L394.7,311.5L389.6,333.9L384.9,337.8L378.3,359Z" }
-];
-
-const STORAGE_KEY = 'alertaBarrio.chia.data';
-let data = {};
-try { const raw = localStorage.getItem(STORAGE_KEY); data = raw ? JSON.parse(raw) : {}; } catch(e){ data = {}; }
-function getEntry(id){ if(!data[id]) data[id]={ratings:[],comments:[]}; return data[id]; }
-function save(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }catch(e){ console.error(e); } }
-function avg(id){ const r=getEntry(id).ratings; return r.length ? r.reduce((a,b)=>a+b,0)/r.length : 0; }
-function getCss(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
-function heatColor(a){ if(a===0) return getCss('--c0'); if(a<=3) return getCss('--c1'); if(a<=6) return getCss('--c2'); return getCss('--c3'); }
-
-const NS='http://www.w3.org/2000/svg';
-const svg=document.getElementById('mapSvg');
-function svgEl(tag, attrs){ const n=document.createElementNS(NS,tag); for(const k in attrs) n.setAttribute(k,attrs[k]); return n; }
-
-function renderMap(){
-  svg.innerHTML='';
-  LOCALIDADES.forEach(loc=>{
-    const a=avg(loc.id);
-    const fill = getEntry(loc.id).ratings.length ? heatColor(a) : loc.base;
-    const cls = 'loc' + (loc.main?' main':'');
-    const path=svgEl('path',{ d:loc.d, fill, class:cls, 'data-id':loc.id, tabindex:'0', role:'button' });
-    path.setAttribute('aria-label', loc.name+' — abrir detalle');
-    path.addEventListener('click', ()=>openPanel(loc.id));
-    path.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openPanel(loc.id); } });
-    const title=svgEl('title',{}); title.textContent=loc.name.charAt(0)+loc.name.slice(1).toLowerCase(); path.appendChild(title);
-    svg.appendChild(path);
-    const label=svgEl('text',{ x:loc.cx, y:loc.cy, class:'loc-label', 'font-size':loc.fs, 'dominant-baseline':'middle' });
-    label.textContent=loc.name;
-    svg.appendChild(label);
-  });
-  markSelected();
-}
-
-function renderRanking(){
-  const list=document.getElementById('rankingList');
-  const sorted=[...LOCALIDADES].sort((a,b)=>avg(b.id)-avg(a.id));
-  list.innerHTML=sorted.map((loc,i)=>{
-    const a=avg(loc.id);
-    return `<li data-id="${loc.id}">
-      <span class="rank">${i+1}</span>
-      <span class="name">${loc.name.charAt(0)+loc.name.slice(1).toLowerCase()}</span>
-      <span class="val" style="color:${a?heatColor(a):'var(--dim)'}">${a?a.toFixed(1):'—'}</span>
-      <div class="bar-track"><div class="bar-fill" style="width:${a*10}%; background:${heatColor(a)};"></div></div>
-    </li>`;
-  }).join('');
-  list.querySelectorAll('li').forEach(li=>li.addEventListener('click',()=>openPanel(li.dataset.id)));
-}
-
-function renderStats(){
-  let totalReports=0, sum=0, withData=0;
-  LOCALIDADES.forEach(loc=>{ const r=getEntry(loc.id).ratings; totalReports+=r.length; if(r.length){ sum+=avg(loc.id); withData++; } });
-  document.getElementById('statReports').textContent=totalReports;
-  document.getElementById('statAvg').textContent=withData?(sum/withData).toFixed(1):'—';
-}
-
-const overlay=document.getElementById('overlay');
-let currentId=null;
-function markSelected(){ svg.querySelectorAll('.loc').forEach(p=>p.classList.toggle('sel', p.dataset.id===currentId)); }
-function openPanel(id){
-  currentId=id;
-  const loc=LOCALIDADES.find(l=>l.id===id);
-  const entry=getEntry(id);
-  const a=avg(id);
-  document.getElementById('panelName').textContent=loc.name.charAt(0)+loc.name.slice(1).toLowerCase();
-  document.getElementById('panelScore').textContent=a?a.toFixed(1):'0';
-  document.getElementById('panelScore').style.color=a?heatColor(a):'var(--ink)';
-  document.getElementById('panelCount').textContent=entry.ratings.length+' reportes';
-  document.getElementById('riskRange').value=5;
-  document.getElementById('riskVal').textContent=5;
-  document.getElementById('commentText').value='';
-  renderComments(id);
-  overlay.classList.add('open');
-  markSelected();
-}
-function closePanel(){ overlay.classList.remove('open'); currentId=null; markSelected(); }
-document.getElementById('closeBtn').addEventListener('click', closePanel);
-overlay.addEventListener('click', e=>{ if(e.target===overlay) closePanel(); });
-document.addEventListener('keydown', e=>{ if(e.key==='Escape' && overlay.classList.contains('open')) closePanel(); });
-
-const riskRange=document.getElementById('riskRange');
-riskRange.addEventListener('input', ()=>{ document.getElementById('riskVal').textContent=riskRange.value; });
-document.getElementById('submitRating').addEventListener('click', ()=>{
-  if(!currentId) return;
-  getEntry(currentId).ratings.push(parseInt(riskRange.value));
-  save();
-  const a=avg(currentId);
-  document.getElementById('panelScore').textContent=a.toFixed(1);
-  document.getElementById('panelScore').style.color=heatColor(a);
-  document.getElementById('panelCount').textContent=getEntry(currentId).ratings.length+' reportes';
-  renderMap(); renderRanking(); renderStats();
-});
-
-function renderComments(id){
-  const entry=getEntry(id);
-  const list=document.getElementById('commentList');
-  const empty=document.getElementById('commentEmpty');
-  const sorted=[...entry.comments].sort((a,b)=>b.date.localeCompare(a.date));
-  list.innerHTML=sorted.map(c=>`<li>${escapeHtml(c.text)}<div class="meta">${escapeHtml(c.date)}</div></li>`).join('');
-  empty.style.display=entry.comments.length?'none':'block';
-}
-function escapeHtml(str){ const d=document.createElement('div'); d.textContent=str; return d.innerHTML; }
-document.getElementById('submitComment').addEventListener('click', ()=>{
-  if(!currentId) return;
-  const ta=document.getElementById('commentText');
-  const text=ta.value.trim();
-  if(!text) return;
-  getEntry(currentId).comments.push({ text, date:new Date().toLocaleString('es-CO') });
-  save(); ta.value=''; renderComments(currentId);
-});
-
-renderMap(); renderRanking(); renderStats();
-</script>
+<script src="assets/data.js"></script>
+<script src="assets/map.js"></script>
+<script>AlertaData.seedIfEmpty(); AlertaMap.init({ city: 'chia' });</script>
 </body>
 </html>

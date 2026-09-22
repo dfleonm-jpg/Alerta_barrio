@@ -30,6 +30,19 @@ desplazarse.*
 5. **📊 Ranking por riesgo** — Zonas ordenadas de mayor a menor percepción.
 6. **♿ Accesibilidad** — Enlaces "saltar al contenido", roles y `aria` en el diálogo y el mapa,
    foco visible, navegación por teclado (Enter/Escape) y soporte de `prefers-reduced-motion`.
+7. **🌙 Modo oscuro** — Tema claro/oscuro con botón en la barra, persistente y respetando la
+   preferencia del sistema (`prefers-color-scheme`).
+8. **🔔 Toasts** — Avisos animados de éxito/error/confirmación (`assets/ui.js`).
+9. **📱 Móvil primero + FAB** — Diseño responsive y **botón flotante** de "Reportar" siempre a mano.
+10. **📍 Geolocalización, 📷 foto y anonimato** — El formulario permite usar tu ubicación,
+    adjuntar una foto (comprimida en el navegador) y publicar con **alias** o de forma **anónima**.
+11. **👍 Validación comunitaria** — Confirmar un reporte o marcarlo como **resuelto**; el feed
+    muestra el estado. Filtros por **tipo**, **rango de fecha** (24 h / 7 días) y **estado**.
+12. **📌 "Clustering"** — Insignias con el **conteo de reportes por zona** sobre el mapa.
+13. **📲 PWA** — `manifest.json` + Service Worker (`sw.js`): **instalable** y con **app shell
+    offline**.
+14. **🛡️ Seguridad** — **Sanitización anti-XSS** (`AlertaData.sanitize`) en todo texto de usuario
+    antes de renderizarlo, y limpieza/límite de longitud de entradas.
 
 ---
 
@@ -59,12 +72,16 @@ alerta-barrio.html    → mapa interactivo de Bogotá
 informacion.html      → mapa interactivo de Chía + vecinos
 reportes.html         → formulario + feed de reportes en vivo
 assets/
-  app.css             → sistema de diseño compartido (una sola hoja de estilos)
+  app.css             → sistema de diseño compartido (incluye modo oscuro, toasts, FAB…)
   data.js             → CAPA DE DATOS: geometría de zonas, ratings, comentarios y
-                        reportes; escala de calor; pub/sub reactivo; store conmutable
-  map.js              → render del mapa + ranking + panel (calificar/comentar) — reactivo
-  report.js           → lógica de la página de reportes (form, geolocalización, feed)
-src/                  → versión anterior modular (referencia histórica; no se usa)
+                        reportes (con estado/votos/alias/foto); escala de calor; sanitize;
+                        pub/sub reactivo; store conmutable Local/Firebase
+  map.js              → render del mapa + ranking + panel + badges de conteo — reactivo
+  report.js           → página de reportes (form, geolocalización, foto, votos, filtros)
+  ui.js               → toasts + modo oscuro persistente (reutilizable)
+  icon.svg            → icono de la PWA
+manifest.json         → manifiesto PWA (instalable)
+sw.js                 → Service Worker (app shell offline)
 ```
 
 **Flujo de datos:** las páginas solo hablan con `AlertaData` (en `data.js`). Cuando algo
@@ -100,6 +117,13 @@ de "store" sin tocar el resto de la app:
    ```
 
 No hace falta cambiar `map.js` ni `report.js`: todo pasa por la capa de datos.
+
+### 📷 Fotos: de base64 local a Firebase Storage
+
+Hoy las fotos se **comprimen en el navegador** (máx. 720 px, JPEG ~0.7) y se guardan como
+`dataURL` dentro del reporte (campo `photo`). Para producción, en el `FirebaseStore.setState`
+sube el `dataURL`/`Blob` a **Firebase Storage** y guarda solo la **URL de descarga** en el
+reporte; así Firestore no almacena imágenes pesadas.
 
 ---
 

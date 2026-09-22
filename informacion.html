@@ -7,9 +7,12 @@
 <meta name="description" content="Alerta Barrio — mapa interactivo de percepción de riesgo en Chía y municipios vecinos (Sabana Centro, Cundinamarca).">
 <title>Alerta Barrio · Mapa de Chía</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📍</text></svg>">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="assets/icon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/app.css">
+<script src="assets/ui.js"></script>
 </head>
 <body>
 <a href="#mapWrap" class="skip-link">Saltar al mapa</a>
@@ -21,6 +24,7 @@
       <a href="alerta-barrio.html">Bogotá</a>
       <a href="informacion.html" class="active" aria-current="page">Chía</a>
       <a href="reportes.html">Reportes en vivo</a>
+      <button class="theme-toggle" data-theme-toggle aria-label="Cambiar tema">🌙</button>
     </nav>
   </div>
 </header>
@@ -111,8 +115,15 @@
   </div>
 </div>
 
+<a class="fab" href="reportes.html" aria-label="Crear reporte"><span class="fab-em">🚨</span><span class="fab-text">Reportar</span></a>
+
 <script src="assets/data.js"></script>
 <script src="assets/map.js"></script>
-<script>AlertaData.seedIfEmpty(); AlertaMap.init({ city: 'chia' });</script>
+<script>
+  AlertaUI.initTheme();
+  AlertaData.seedIfEmpty();
+  AlertaMap.init({ city: 'chia' });
+  if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+</script>
 </body>
 </html>

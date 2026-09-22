@@ -83,6 +83,32 @@
           label.textContent = z.name; svg.appendChild(label);
         }
       });
+      this._renderClusters();
+    },
+
+    // Badges de "clustering": muestran cuántos reportes vigentes hay por zona,
+    // el equivalente al marker-clustering en este mapa de zonas SVG.
+    _renderClusters() {
+      const raw = D.countByZone(this.city);
+      // Igualamos por nombre en minúsculas (los reportes usan nombre "bonito"
+      // y las zonas lo guardan en mayúsculas).
+      const counts = {};
+      Object.keys(raw).forEach(k => { counts[k.toLowerCase()] = (counts[k.toLowerCase()] || 0) + raw[k]; });
+      D.getZones(this.city).forEach(z => {
+        const n = counts[z.name.toLowerCase()];
+        if (!n) return;
+        const g = el('g', { class: 'cluster-badge' });
+        const r = n > 9 ? 15 : 13;
+        // Coloca el badge arriba-derecha del centro de la zona.
+        const bx = z.cx + (z.fs || 12) * 1.2, by = z.cy - (z.fs || 12) * 0.9;
+        const c = el('circle', { cx: bx, cy: by, r: r });
+        const t = el('text', { x: bx, y: by }); t.textContent = n > 99 ? '99+' : String(n);
+        const title = el('title', {}); title.textContent = `${cap(z.name)}: ${n} reporte${n > 1 ? 's' : ''} reciente${n > 1 ? 's' : ''}`;
+        g.appendChild(c); g.appendChild(t); g.appendChild(title);
+        g.style.cursor = 'pointer';
+        g.addEventListener('click', () => this.openPanel(z.id));
+        this.svg.appendChild(g);
+      });
     },
 
     renderRanking() {

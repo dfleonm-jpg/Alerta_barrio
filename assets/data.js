@@ -33,6 +33,26 @@
   };
   const tipoMeta = (id) => TIPOS.find(t => t.id === id) || TIPOS[TIPOS.length - 1];
 
+  const ESTADOS = {
+    pendiente: { id: 'pendiente', label: 'Pendiente', color: '#f6a821' },
+    resuelto:  { id: 'resuelto',  label: 'Resuelto',  color: '#43a047' }
+  };
+
+  // --------------------------------------------------------------------------
+  // Sanitización anti-XSS: escapa cualquier texto de usuario antes de ir al DOM.
+  // Se usa en TODAS las páginas (comentarios, notas, alias) para prevenir
+  // inyección de scripts/HTML.
+  // --------------------------------------------------------------------------
+  function sanitize(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  // Limpieza de entrada: recorta, colapsa espacios y limita longitud.
+  function cleanInput(str, max) {
+    return String(str == null ? '' : str).replace(/\s+/g, ' ').trim().slice(0, max || 240);
+  }
+
   // Ventana de vigencia de un reporte para el mapa de calor (72 h).
   // Los reportes más viejos "pesan" menos y dejan de contar tras este tiempo.
   const REPORT_TTL_H = 72;
@@ -122,7 +142,7 @@
   function uid() { return 'r_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7); }
 
   const AlertaData = {
-    TIPOS, NIVELES, tipoMeta, heatColor, REPORT_TTL_H,
+    TIPOS, NIVELES, ESTADOS, tipoMeta, heatColor, REPORT_TTL_H, sanitize, cleanInput,
 
     useStore(newStore) { store = newStore; },
     subscribe(fn) { return store.subscribe(fn); },
@@ -167,28 +187,54 @@
       return ((s.comments[cityId] && s.comments[cityId][zoneId]) || []).slice();
     },
     addComment(cityId, zoneId, text) {
+      const clean = cleanInput(text, 240);
+      if (!clean) return;
       store.setState(s => {
         s.comments[cityId] = s.comments[cityId] || {};
         s.comments[cityId][zoneId] = s.comments[cityId][zoneId] || [];
-        s.comments[cityId][zoneId].push({ text, date: new Date().toLocaleString('es-CO') });
+        s.comments[cityId][zoneId].push({ text: clean, date: new Date().toLocaleString('es-CO') });
       });
     },
 
     // ---- Reportes en vivo ----
+    // rep = { ciudad, zona, tipo, nivel, note, alias, anon, photo, coords }
     addReport(rep) {
-      const report = Object.assign({ id: uid(), ts: Date.now() }, rep);
+      const report = Object.assign({}, rep, {
+        id: uid(), ts: Date.now(),
+        estado: 'pendiente', votos: 0, resueltos: 0,
+        note: cleanInput(rep.note, 240),
+        alias: rep.anon ? '' : cleanInput(rep.alias, 40),
+        anon: !!rep.anon
+      });
       store.setState(s => { s.reports.unshift(report); });
       return report;
+    },
+    voteReport(id) {
+      store.setState(s => { const r = s.reports.find(x => x.id === id); if (r) r.votos = (r.votos || 0) + 1; });
+    },
+    resolveReport(id) {
+      store.setState(s => {
+        const r = s.reports.find(x => x.id === id);
+        if (r) { r.resueltos = (r.resueltos || 0) + 1; if (r.resueltos >= 1) r.estado = 'resuelto'; }
+      });
     },
     getReports(opts) {
       opts = opts || {};
       let list = store.getState().reports.slice().sort((a, b) => b.ts - a.ts);
       if (opts.city) list = list.filter(r => r.ciudad === opts.city);
-      if (opts.zone) list = list.filter(r => r.zona === opts.zone);
+      if (opts.zone) { const z = String(opts.zone).toLowerCase(); list = list.filter(r => String(r.zona).toLowerCase() === z); }
       if (opts.type && opts.type !== 'todos') list = list.filter(r => r.tipo === opts.type);
+      if (opts.status && opts.status !== 'todos') list = list.filter(r => (r.estado || 'pendiente') === opts.status);
+      if (opts.sinceHours) { const min = Date.now() - opts.sinceHours * 3600000; list = list.filter(r => r.ts >= min); }
       if (opts.freshOnly) { const min = Date.now() - REPORT_TTL_H * 3600000; list = list.filter(r => r.ts >= min); }
       if (opts.limit) list = list.slice(0, opts.limit);
       return list;
+    },
+    // Conteo de reportes vigentes por zona → alimenta los badges de "cluster" del mapa.
+    countByZone(cityId) {
+      const map = {};
+      this.getReports({ city: cityId, freshOnly: true }).forEach(r => { map[r.zona] = (map[r.zona] || 0) + 1; });
+      return map;
     },
     isStale(report) { return (Date.now() - report.ts) > REPORT_TTL_H * 3600000; },
     clearReports() { store.setState(s => { s.reports = []; }); },
@@ -207,12 +253,13 @@
       if (store.getState().reports.length) return;
       const now = Date.now(), h = 3600000;
       const seed = [
-        { ciudad:'bogota', zona:'Kennedy', tipo:'robo', nivel:'alto', note:'Hurto de celular a la salida del portal.', ts: now-0.4*h },
-        { ciudad:'bogota', zona:'Chapinero', tipo:'acoso', nivel:'medio', note:'Acoso callejero cerca de la Av. Caracas.', ts: now-1.5*h },
-        { ciudad:'bogota', zona:'Santafé', tipo:'iluminacion', nivel:'medio', note:'Varias luminarias apagadas en la cuadra.', ts: now-5*h },
-        { ciudad:'chia', zona:'Chía', tipo:'sospechoso', nivel:'bajo', note:'Persona merodeando vehículos en el parque principal.', ts: now-9*h }
+        { ciudad:'bogota', zona:'Kennedy', tipo:'robo', nivel:'alto', note:'Hurto de celular a la salida del portal.', alias:'Vecino K', anon:false, votos:4, estado:'pendiente', ts: now-0.4*h },
+        { ciudad:'bogota', zona:'Kennedy', tipo:'sospechoso', nivel:'medio', note:'Moto merodeando frente al colegio.', anon:true, votos:1, estado:'pendiente', ts: now-1.1*h },
+        { ciudad:'bogota', zona:'Chapinero', tipo:'acoso', nivel:'medio', note:'Acoso callejero cerca de la Av. Caracas.', anon:true, votos:2, estado:'pendiente', ts: now-1.5*h },
+        { ciudad:'bogota', zona:'Santafé', tipo:'iluminacion', nivel:'medio', note:'Varias luminarias apagadas en la cuadra.', alias:'Ana', anon:false, votos:6, estado:'resuelto', resueltos:3, ts: now-5*h },
+        { ciudad:'chia', zona:'Chía', tipo:'sospechoso', nivel:'bajo', note:'Persona merodeando vehículos en el parque principal.', anon:true, votos:1, estado:'pendiente', ts: now-9*h }
       ];
-      store.setState(s => { s.reports = seed.map(r => Object.assign({ id: uid() }, r)); });
+      store.setState(s => { s.reports = seed.map(r => Object.assign({ id: uid(), estado:'pendiente', votos:0, resueltos:0 }, r)); });
     }
   };
 

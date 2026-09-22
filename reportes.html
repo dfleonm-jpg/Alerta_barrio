@@ -7,9 +7,12 @@
 <meta name="description" content="Alerta Barrio — reporta incidentes en vivo (robo, acoso, etc.) por localidad en Bogotá y Chía y consulta el feed de reportes recientes.">
 <title>Alerta Barrio · Reportes en vivo</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📍</text></svg>">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="assets/icon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/app.css">
+<script src="assets/ui.js"></script>
 </head>
 <body>
 <a href="#feed" class="skip-link">Saltar al feed</a>
@@ -21,6 +24,7 @@
       <a href="alerta-barrio.html">Bogotá</a>
       <a href="informacion.html">Chía</a>
       <a href="reportes.html" class="active" aria-current="page">Reportes en vivo</a>
+      <button class="theme-toggle" data-theme-toggle aria-label="Cambiar tema">🌙</button>
     </nav>
   </div>
 </header>
@@ -37,7 +41,7 @@
 <main>
   <div class="grid-2">
     <!-- Formulario -->
-    <div class="card">
+    <div class="card" id="formCard">
       <h2>➕ Nuevo reporte</h2>
       <p class="hint">Indica qué pasó, dónde y qué tan grave es. No incluyas datos personales.</p>
 
@@ -74,6 +78,25 @@
         <textarea id="txtNote" maxlength="240" placeholder="Ej.: Dos personas en moto robaron un celular cerca del parque..."></textarea>
       </div>
 
+      <div class="field">
+        <label>Evidencia (opcional)</label>
+        <div class="photo-field">
+          <img id="photoPreview" class="photo-preview" alt="Vista previa de la foto">
+          <label class="photo-label" for="photoInput">📷 Adjuntar foto</label>
+          <input type="file" id="photoInput" accept="image/*" capture="environment" class="visually-hidden">
+          <button type="button" class="photo-clear" id="photoClear" style="display:none;">Quitar</button>
+        </div>
+      </div>
+
+      <div class="check-row">
+        <input type="checkbox" id="chkAnon">
+        <label for="chkAnon" style="margin:0;">Publicar como anónimo</label>
+      </div>
+      <div class="field" id="aliasField">
+        <label for="aliasInput">Alias (opcional, visible)</label>
+        <input type="text" id="aliasInput" maxlength="40" placeholder="Ej.: Vecino de Suba">
+      </div>
+
       <button class="submit" id="btnSubmit">🚨 Publicar reporte</button>
       <div class="formmsg" id="formMsg" role="status" aria-live="polite"></div>
     </div>
@@ -101,6 +124,21 @@
         <button class="chip" data-f="otro">❔ Otro</button>
       </div>
 
+      <div class="filter-group">
+        <label for="filterFecha">Fecha:</label>
+        <select id="filterFecha">
+          <option value="todos">Todas</option>
+          <option value="24h">Últimas 24 h</option>
+          <option value="7d">Última semana</option>
+        </select>
+        <label for="filterEstado">Estado:</label>
+        <select id="filterEstado">
+          <option value="todos">Todos</option>
+          <option value="pendiente">Pendientes</option>
+          <option value="resuelto">Resueltos</option>
+        </select>
+      </div>
+
       <ul class="feed" id="feed" aria-live="polite"></ul>
       <p class="empty" id="feedEmpty">Aún no hay reportes. ¡Sé el primero en reportar!</p>
     </div>
@@ -114,8 +152,14 @@
   </div>
 </footer>
 
+<a class="fab" href="#formCard" aria-label="Ir al formulario de reporte"><span class="fab-em">🚨</span><span class="fab-text">Reportar</span></a>
+
 <script src="assets/data.js"></script>
 <script src="assets/report.js"></script>
-<script>AlertaReport.init();</script>
+<script>
+  AlertaUI.initTheme();
+  AlertaReport.init();
+  if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+</script>
 </body>
 </html>

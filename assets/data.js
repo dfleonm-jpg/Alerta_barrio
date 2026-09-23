@@ -110,29 +110,104 @@
   }
 
   /* ------------------------------------------------------------------------
-     FirebaseStore (plantilla lista para conectar).
-     Cuando tengas tu proyecto Firebase:
-       1. Añade los SDK en el HTML (o usa módulos) y crea `db`.
-       2. Implementa los métodos leyendo/escribiendo en Firestore/RTDB y llama
-          this._emit() en cada snapshot.
-       3. AlertaData.useStore(new FirebaseStore(db));
-     La forma del estado debe ser la misma que emptyState().
-  --------------------------------------------------------------------------
-  class FirebaseStore {
-    constructor(db) {
-      this.db = db; this._subs = new Set(); this.state = emptyState();
-      // Ej.: onSnapshot(collection(db,'reports'), snap => { ... ; this._emit(); });
+     FirestoreStore — sincroniza reportes / calificaciones / comentarios en la
+     nube (Cloud Firestore) EN TIEMPO REAL entre todos los dispositivos.
+     Recibe `fb` = API mínima inyectada desde firebase-init.js:
+       { db, collection, addDoc, updateDoc, doc, deleteDoc, onSnapshot,
+         query, orderBy, increment, serverTimestamp, getDocs }
+     Mantiene la MISMA forma de estado que emptyState() para que map.js /
+     report.js no cambien: los snapshots reconstruyen { ratings, comments,
+     reports } y se llama _emit() en cada cambio.
+     Colecciones: reports, ratings, comments.
+  -------------------------------------------------------------------------- */
+  class FirestoreStore {
+    constructor(fb) {
+      this.fb = fb;
+      this._subs = new Set();
+      this.state = emptyState();
+      this._raw = { reports: [], ratings: [], comments: [] };
+      this._listen();
     }
-    getState() { return this.state; }
-    async setState(mutator) {
-      mutator(this.state);
-      // Persiste el delta en Firestore aquí (addDoc/setDoc/updateDoc).
+    _listen() {
+      const { db, collection, onSnapshot, query, orderBy } = this.fb;
+      const bind = (name, orderField) => {
+        try {
+          const col = collection(db, name);
+          const q = orderField ? query(col, orderBy(orderField, 'desc')) : col;
+          onSnapshot(q,
+            (snap) => { this._raw[name] = snap.docs.map(d => Object.assign({ id: d.id }, d.data())); this._rebuild(); },
+            (err) => { console.warn('[Firestore] onSnapshot', name, err && err.message); }
+          );
+        } catch (e) { console.warn('[Firestore] listen', name, e && e.message); }
+      };
+      bind('reports', 'ts');
+      bind('ratings', null);
+      bind('comments', null);
+    }
+    // Reconstruye el estado { ratings, comments, reports } a partir de las
+    // colecciones planas de Firestore.
+    _rebuild() {
+      const st = emptyState();
+      st.reports = (this._raw.reports || []).slice().sort((a, b) => (b.ts || 0) - (a.ts || 0));
+      (this._raw.ratings || []).forEach(r => {
+        if (!r.ciudad || !r.zonaId) return;
+        st.ratings[r.ciudad] = st.ratings[r.ciudad] || {};
+        (st.ratings[r.ciudad][r.zonaId] = st.ratings[r.ciudad][r.zonaId] || []).push(r.value);
+      });
+      (this._raw.comments || []).forEach(c => {
+        if (!c.ciudad || !c.zonaId) return;
+        st.comments[c.ciudad] = st.comments[c.ciudad] || {};
+        (st.comments[c.ciudad][c.zonaId] = st.comments[c.ciudad][c.zonaId] || []).push({ text: c.text, date: c.date || '' });
+      });
+      this.state = st;
       this._emit();
     }
+    getState() { return this.state; }
+    // setState genérico: no se usa para escribir en la nube (usamos los métodos
+    // específicos), pero lo dejamos por compatibilidad de interfaz.
+    setState(mutator) { mutator(this.state); this._emit(); }
     subscribe(fn) { this._subs.add(fn); return () => this._subs.delete(fn); }
-    _emit() { this._subs.forEach(fn => fn(this.state)); }
+    _emit() { this._subs.forEach(fn => { try { fn(this.state); } catch (e) { console.error(e); } }); }
+
+    // ---- Escrituras a Firestore (métodos "intent" que AlertaData delega) ----
+    addReport(report) {
+      const { db, collection, addDoc } = this.fb;
+      const doc = Object.assign({}, report); delete doc.id; // Firestore genera el id
+      addDoc(collection(db, 'reports'), doc).catch(e => console.error('[Firestore] addReport', e));
+    }
+    voteReport(id) {
+      const { db, doc, updateDoc, increment } = this.fb;
+      updateDoc(doc(db, 'reports', id), { votos: increment(1) }).catch(e => console.error('[Firestore] voteReport', e));
+    }
+    resolveReport(id) {
+      const { db, doc, updateDoc, increment } = this.fb;
+      updateDoc(doc(db, 'reports', id), { resueltos: increment(1), estado: 'resuelto' }).catch(e => console.error('[Firestore] resolveReport', e));
+    }
+    addRating(cityId, zoneId, value) {
+      const { db, collection, addDoc } = this.fb;
+      addDoc(collection(db, 'ratings'), { ciudad: cityId, zonaId: zoneId, value: value, ts: Date.now() }).catch(e => console.error('[Firestore] addRating', e));
+    }
+    addComment(cityId, zoneId, text) {
+      const { db, collection, addDoc } = this.fb;
+      addDoc(collection(db, 'comments'), { ciudad: cityId, zonaId: zoneId, text: text, date: new Date().toLocaleString('es-CO'), ts: Date.now() }).catch(e => console.error('[Firestore] addComment', e));
+    }
+    async clearReports() {
+      const { db, collection, getDocs, deleteDoc, doc } = this.fb;
+      try { const snap = await getDocs(collection(db, 'reports')); await Promise.all(snap.docs.map(d => deleteDoc(doc(db, 'reports', d.id)))); }
+      catch (e) { console.error('[Firestore] clearReports', e); }
+    }
+    // Semilla en la nube: siembra solo si la colección está vacía (una vez).
+    async seed(reports) {
+      const { db, collection, getDocs, addDoc } = this.fb;
+      try {
+        const snap = await getDocs(collection(db, 'reports'));
+        if (!snap.empty) return false;
+        await Promise.all(reports.map(r => { const d = Object.assign({}, r); delete d.id; return addDoc(collection(db, 'reports'), d); }));
+        return true;
+      } catch (e) { console.warn('[Firestore] seed', e && e.message); return false; }
+    }
   }
-  */
+  global.AlertaFirestoreStore = FirestoreStore;
 
   // --------------------------------------------------------------------------
   // API pública
@@ -144,8 +219,21 @@
   const AlertaData = {
     TIPOS, NIVELES, ESTADOS, tipoMeta, heatColor, REPORT_TTL_H, sanitize, cleanInput,
 
-    useStore(newStore) { store = newStore; },
-    subscribe(fn) { return store.subscribe(fn); },
+    // Suscriptores de la app (independientes del store): así, al cambiar de
+    // store (p. ej. Local → Firestore) las vistas siguen recibiendo cambios.
+    _appSubs: new Set(),
+    _storeUnsub: null,
+    _bindStore() {
+      if (this._storeUnsub) { try { this._storeUnsub(); } catch (e) {} }
+      this._storeUnsub = store.subscribe(() => this._appSubs.forEach(fn => { try { fn(store.getState()); } catch (e) { console.error(e); } }));
+    },
+    useStore(newStore) {
+      store = newStore;
+      this._bindStore();
+      // Notifica de inmediato a las vistas ya montadas con el nuevo estado.
+      this._appSubs.forEach(fn => { try { fn(store.getState()); } catch (e) { console.error(e); } });
+    },
+    subscribe(fn) { this._appSubs.add(fn); return () => this._appSubs.delete(fn); },
 
     // ---- Zonas ----
     getCities() { return CITIES; },
@@ -160,6 +248,7 @@
       return (s.ratings[cityId] && s.ratings[cityId][zoneId]) || [];
     },
     addRating(cityId, zoneId, value) {
+      if (store.addRating) return store.addRating(cityId, zoneId, value);
       store.setState(s => {
         s.ratings[cityId] = s.ratings[cityId] || {};
         s.ratings[cityId][zoneId] = s.ratings[cityId][zoneId] || [];
@@ -189,6 +278,7 @@
     addComment(cityId, zoneId, text) {
       const clean = cleanInput(text, 240);
       if (!clean) return;
+      if (store.addComment) return store.addComment(cityId, zoneId, clean);
       store.setState(s => {
         s.comments[cityId] = s.comments[cityId] || {};
         s.comments[cityId][zoneId] = s.comments[cityId][zoneId] || [];
@@ -206,13 +296,16 @@
         alias: rep.anon ? '' : cleanInput(rep.alias, 40),
         anon: !!rep.anon
       });
+      if (store.addReport) { store.addReport(report); return report; }
       store.setState(s => { s.reports.unshift(report); });
       return report;
     },
     voteReport(id) {
+      if (store.voteReport) return store.voteReport(id);
       store.setState(s => { const r = s.reports.find(x => x.id === id); if (r) r.votos = (r.votos || 0) + 1; });
     },
     resolveReport(id) {
+      if (store.resolveReport) return store.resolveReport(id);
       store.setState(s => {
         const r = s.reports.find(x => x.id === id);
         if (r) { r.resueltos = (r.resueltos || 0) + 1; if (r.resueltos >= 1) r.estado = 'resuelto'; }
@@ -237,7 +330,7 @@
       return map;
     },
     isStale(report) { return (Date.now() - report.ts) > REPORT_TTL_H * 3600000; },
-    clearReports() { store.setState(s => { s.reports = []; }); },
+    clearReports() { if (store.clearReports) return store.clearReports(); store.setState(s => { s.reports = []; }); },
 
     // ---- Utilidades de tiempo ----
     timeAgo(ts) {
@@ -248,21 +341,28 @@
       const d = Math.round(h / 24); return d === 1 ? 'ayer' : `hace ${d} días`;
     },
 
-    // ---- Datos semilla (solo si no hay reportes) ----
-    seedIfEmpty() {
-      if (store.getState().reports.length) return;
+    // ---- Datos semilla ----
+    _seedData() {
       const now = Date.now(), h = 3600000;
-      const seed = [
-        { ciudad:'bogota', zona:'Kennedy', tipo:'robo', nivel:'alto', note:'Hurto de celular a la salida del portal.', alias:'Vecino K', anon:false, votos:4, estado:'pendiente', ts: now-0.4*h },
-        { ciudad:'bogota', zona:'Kennedy', tipo:'sospechoso', nivel:'medio', note:'Moto merodeando frente al colegio.', anon:true, votos:1, estado:'pendiente', ts: now-1.1*h },
-        { ciudad:'bogota', zona:'Chapinero', tipo:'acoso', nivel:'medio', note:'Acoso callejero cerca de la Av. Caracas.', anon:true, votos:2, estado:'pendiente', ts: now-1.5*h },
-        { ciudad:'bogota', zona:'Santafé', tipo:'iluminacion', nivel:'medio', note:'Varias luminarias apagadas en la cuadra.', alias:'Ana', anon:false, votos:6, estado:'resuelto', resueltos:3, ts: now-5*h },
-        { ciudad:'chia', zona:'Chía', tipo:'sospechoso', nivel:'bajo', note:'Persona merodeando vehículos en el parque principal.', anon:true, votos:1, estado:'pendiente', ts: now-9*h }
+      return [
+        { ciudad:'bogota', zona:'Kennedy', tipo:'robo', nivel:'alto', note:'Hurto de celular a la salida del portal.', alias:'Vecino K', anon:false, votos:4, resueltos:0, estado:'pendiente', ts: now-0.4*h },
+        { ciudad:'bogota', zona:'Kennedy', tipo:'sospechoso', nivel:'medio', note:'Moto merodeando frente al colegio.', alias:'', anon:true, votos:1, resueltos:0, estado:'pendiente', ts: now-1.1*h },
+        { ciudad:'bogota', zona:'Chapinero', tipo:'acoso', nivel:'medio', note:'Acoso callejero cerca de la Av. Caracas.', alias:'', anon:true, votos:2, resueltos:0, estado:'pendiente', ts: now-1.5*h },
+        { ciudad:'bogota', zona:'Santafé', tipo:'iluminacion', nivel:'medio', note:'Varias luminarias apagadas en la cuadra.', alias:'Ana', anon:false, votos:6, resueltos:3, estado:'resuelto', ts: now-5*h },
+        { ciudad:'chia', zona:'Chía', tipo:'sospechoso', nivel:'bajo', note:'Persona merodeando vehículos en el parque principal.', alias:'', anon:true, votos:1, resueltos:0, estado:'pendiente', ts: now-9*h }
       ];
-      store.setState(s => { s.reports = seed.map(r => Object.assign({ id: uid(), estado:'pendiente', votos:0, resueltos:0 }, r)); });
+    },
+    // Siembra datos de demostración solo si está vacío.
+    // En Firestore la siembra es asíncrona y solo la corre el primer visitante.
+    seedIfEmpty() {
+      if (store.seed) { store.seed(this._seedData()); return; }
+      if (store.getState().reports.length) return;
+      const seed = this._seedData();
+      store.setState(s => { s.reports = seed.map(r => Object.assign({ id: uid() }, r)); });
     }
   };
 
+  AlertaData._bindStore(); // conecta el store inicial (LocalStore)
   global.AlertaData = AlertaData;
 })(window);
 

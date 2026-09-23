@@ -13,6 +13,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/app.css">
 <script src="assets/ui.js"></script>
+<script src="assets/firebase-config.js"></script>
 </head>
 <body>
 <a href="#features" class="skip-link">Saltar al contenido</a>
@@ -124,6 +125,7 @@
 <a class="fab" href="reportes.html" aria-label="Crear reporte"><span class="fab-em">🚨</span><span class="fab-text">Reportar</span></a>
 
 <script src="assets/data.js"></script>
+<script type="module" src="assets/firebase-init.js"></script>
 <script>
   AlertaUI.initTheme();
   if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));

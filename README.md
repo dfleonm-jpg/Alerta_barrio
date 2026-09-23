@@ -79,6 +79,8 @@ assets/
   map.js              → render del mapa + ranking + panel + badges de conteo — reactivo
   report.js           → página de reportes (form, geolocalización, foto, votos, filtros)
   ui.js               → toasts + modo oscuro persistente (reutilizable)
+  firebase-config.js  → configuración de Firebase (claves públicas) + flags
+  firebase-init.js    → carga el SDK, login anónimo y activa Firestore (módulo ES)
   icon.svg            → icono de la PWA
 manifest.json         → manifiesto PWA (instalable)
 sw.js                 → Service Worker (app shell offline)
@@ -91,39 +93,64 @@ redibujan solos. También se sincroniza **entre pestañas** del mismo navegador 
 
 ---
 
-## 🔌 Conectar un backend real (Firebase)
+## 🔌 Backend en tiempo real (Firebase / Firestore) — ¡ya conectado!
 
-Por defecto los datos son **locales** (`LocalStore`, cada usuario ve los suyos). Para
-compartir reportes entre usuarios **en tiempo real**, `data.js` está preparado para cambiar
-de "store" sin tocar el resto de la app:
+La app está integrada con **Cloud Firestore**: los reportes, calificaciones y comentarios se
+**comparten en vivo entre todos los dispositivos** (`onSnapshot`). Si Firestore no está
+disponible (sin conexión, config desactivada), la app **cae automáticamente a `localStorage`**
+y sigue funcionando: nunca se rompe.
 
-1. Añade el SDK de Firebase a las páginas (o usa módulos ES) e inicializa `db`.
-2. Implementa un `FirebaseStore` con la misma interfaz que `LocalStore`
-   (`getState()`, `setState(mutator)`, `subscribe(fn)`), usando Firestore/RTDB. Hay una
-   **plantilla comentada** dentro de `assets/data.js`.
-   - En `setState` persiste el cambio (p. ej. `addDoc`/`setDoc`).
-   - Suscríbete a los `onSnapshot` y llama a `this._emit()` en cada actualización.
-   - Mantén la **misma forma de estado** que `emptyState()`:
-     `{ ratings, comments, reports }`.
-3. Actívalo **antes** de `AlertaMap.init(...)` / `AlertaReport.init()`:
+### Archivos
+```
+assets/firebase-config.js  → tu firebaseConfig + flags (USE_FIREBASE, ANON_AUTH, SDK_VERSION)
+assets/firebase-init.js    → carga el SDK (módulo ES), login anónimo y activa el FirestoreStore
+assets/data.js             → contiene la clase FirestoreStore (sincroniza y escribe en la nube)
+```
+En cada página el orden es: `firebase-config.js` → `data.js` → `firebase-init.js` (módulo).
 
-   ```html
-   <script src="assets/data.js"></script>
-   <script type="module">
-     // ...inicializa Firebase y crea `db`...
-     AlertaData.useStore(new FirebaseStore(db));
-   </script>
-   <script src="assets/map.js"></script>
-   ```
+### Activar / desactivar
+En `assets/firebase-config.js`:
+- `USE_FIREBASE: true` → usa Firestore (nube). `false` → solo local.
+- `ANON_AUTH: true` → inicia sesión **anónima** antes de escribir (requerido si tus reglas
+  exigen `request.auth != null`).
 
-No hace falta cambiar `map.js` ni `report.js`: todo pasa por la capa de datos.
+### Colecciones en Firestore
+- **`reports`** — `{ ciudad, zona, tipo, nivel, note, alias, anon, photo, coords, estado, votos, resueltos, ts }`
+- **`ratings`** — `{ ciudad, zonaId, value, ts }`
+- **`comments`** — `{ ciudad, zonaId, text, date, ts }`
 
-### 📷 Fotos: de base64 local a Firebase Storage
+### Reglas de seguridad (Firestore → Reglas)
+La app funciona con **lectura pública** y **escritura autenticada** (Auth anónimo). Ejemplo:
 
-Hoy las fotos se **comprimen en el navegador** (máx. 720 px, JPEG ~0.7) y se guardan como
-`dataURL` dentro del reporte (campo `photo`). Para producción, en el `FirebaseStore.setState`
-sube el `dataURL`/`Blob` a **Firebase Storage** y guarda solo la **URL de descarga** en el
-reporte; así Firestore no almacena imágenes pesadas.
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /reports/{id} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['votos','resueltos','estado']);
+      allow delete: if false;
+    }
+    match /ratings/{id}  { allow read: if true; allow create: if request.auth != null; }
+    match /comments/{id} { allow read: if true; allow create: if request.auth != null; }
+    match /{document=**} { allow read, write: if false; }
+  }
+}
+```
+Si usas estas reglas, **activa Authentication → Sign-in method → Anónimo**. Si prefieres una
+demo sin login, usa `allow read, write: if true;` en cada colección y pon `ANON_AUTH: false`.
+
+> ⚠️ Los módulos ES de Firebase requieren servir por **http/https** (GitHub Pages o
+> `python3 -m http.server`); con doble clic `file://` el navegador bloquea los módulos (y la
+> app cae a modo local).
+
+### 📷 Fotos: de base64 local a Firebase Storage (opcional)
+Hoy las fotos se **comprimen en el navegador** (máx. 720 px, JPEG ~0.7) y viajan como
+`dataURL` en el campo `photo`. Para no guardar imágenes pesadas en Firestore, en
+`FirestoreStore.addReport` sube el `dataURL`/`Blob` a **Firebase Storage** y guarda solo la
+**URL de descarga**. (Requiere activar Storage y sus reglas.)
 
 ---
 

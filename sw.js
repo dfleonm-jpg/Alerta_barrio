@@ -5,7 +5,7 @@
    Estrategia: cache-first para los assets propios; network-first con fallback
    a caché para navegaciones (HTML).
    ========================================================================== */
-const CACHE = 'alerta-barrio-v3';
+const CACHE = 'alerta-barrio-v4';
 const SHELL = [
   './',
   'index.html',
@@ -17,6 +17,8 @@ const SHELL = [
   'assets/map.js',
   'assets/report.js',
   'assets/ui.js',
+  'assets/firebase-config.js',
+  'assets/firebase-init.js',
   'assets/icon.svg',
   'manifest.json'
 ];

@@ -342,3 +342,23 @@ html[data-theme="dark"] .note{ background:#211f18; }
   .card{ padding:16px; }
   .map-section{ gap:16px; }
 }
+
+
+/* ---------- Indicador de estado del backend ---------- */
+.backend-badge{
+  position:fixed; left:14px; bottom:calc(14px + env(safe-area-inset-bottom,0px)); z-index:70;
+  display:inline-flex; align-items:center; gap:8px;
+  background:var(--panel); color:var(--ink); border:1px solid var(--line);
+  border-radius:999px; padding:7px 13px; font-size:12.5px; font-weight:600;
+  box-shadow:var(--shadow-sm); transition:.2s; max-width:70vw;
+}
+.backend-badge .bb-dot{ width:9px; height:9px; border-radius:50%; background:var(--dim); flex-shrink:0; }
+.backend-badge.connecting .bb-dot{ background:#f6a821; animation:bbpulse 1s infinite; }
+.backend-badge.cloud .bb-dot{ background:#43a047; }
+.backend-badge.local .bb-dot{ background:#f6a821; }
+.backend-badge.error .bb-dot{ background:#d62828; }
+@keyframes bbpulse{ 0%,100%{ opacity:1; } 50%{ opacity:.3; } }
+/* Tras conectar a la nube, se encoge a solo el punto para no estorbar */
+.backend-badge.mini{ padding:7px; }
+.backend-badge.mini .bb-text{ display:none; }
+@media (max-width:520px){ .backend-badge{ font-size:11.5px; } }

@@ -5,7 +5,7 @@
    Estrategia: cache-first para los assets propios; network-first con fallback
    a caché para navegaciones (HTML).
    ========================================================================== */
-const CACHE = 'alerta-barrio-v4';
+const CACHE = 'alerta-barrio-v5';
 const SHELL = [
   './',
   'index.html',

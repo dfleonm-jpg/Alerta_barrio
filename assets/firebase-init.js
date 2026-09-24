@@ -12,11 +12,18 @@
    de data.js. Lee la config de window.ALERTA_FIREBASE (firebase-config.js).
    ========================================================================== */
 (async function () {
+  // Emite el estado del backend para el indicador visual (ui.js lo escucha).
+  function status(state, detail) {
+    try { document.dispatchEvent(new CustomEvent('alerta:backend', { detail: { state: state, message: detail || '' } })); } catch (e) {}
+  }
+
   const CFG = window.ALERTA_FIREBASE;
   if (!CFG || !CFG.USE_FIREBASE) {
     console.info('[Alerta] Firebase desactivado → usando almacenamiento local.');
+    status('local', 'Firebase desactivado en la configuración');
     return;
   }
+  status('connecting');
   const V = CFG.SDK_VERSION || '12.19.0';
   const base = `https://www.gstatic.com/firebasejs/${V}`;
 
@@ -47,14 +54,16 @@
     // API mínima que espera FirestoreStore.
     const fb = { db, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, increment, getDocs };
     const StoreClass = window.AlertaFirestoreStore;
-    if (!StoreClass) { console.warn('[Alerta] FirestoreStore no disponible.'); return; }
+    if (!StoreClass) { console.warn('[Alerta] FirestoreStore no disponible.'); status('error', 'FirestoreStore no disponible'); return; }
 
     window.AlertaData.useStore(new StoreClass(fb));
     console.info('[Alerta] Firebase Firestore conectado ✔ (proyecto ' + CFG.firebaseConfig.projectId + ')');
+    status('cloud', CFG.firebaseConfig.projectId);
 
     // Reavisar a las vistas ya montadas para que se resuscriban al nuevo store.
     document.dispatchEvent(new CustomEvent('alerta:store-changed'));
   } catch (e) {
     console.warn('[Alerta] Firebase no disponible, se usa almacenamiento local:', e && e.message);
+    status('local', (e && e.message) || 'sin conexión');
   }
 })();

@@ -70,6 +70,38 @@
       const timer = setTimeout(kill, dur);
       el.addEventListener('click', () => { clearTimeout(timer); kill(); });
       return el;
+    },
+
+    // Indicador del estado del backend (nube / local). Escucha el evento
+    // 'alerta:backend' que emite firebase-init.js.
+    _badge: null,
+    initBackendBadge() {
+      if (this._badge) return;
+      const b = document.createElement('div');
+      b.className = 'backend-badge connecting';
+      b.setAttribute('role', 'status');
+      b.innerHTML = '<span class="bb-dot"></span><span class="bb-text">Conectando…</span>';
+      document.body.appendChild(b);
+      this._badge = b;
+      const states = {
+        connecting: { cls: 'connecting', text: 'Conectando…', title: 'Conectando al backend…' },
+        cloud:      { cls: 'cloud', text: 'Conectado a la nube', title: '' },
+        local:      { cls: 'local', text: 'Modo local', title: 'Usando almacenamiento local' },
+        error:      { cls: 'error', text: 'Sin backend', title: '' }
+      };
+      const apply = (state, message) => {
+        const s = states[state] || states.local;
+        b.className = 'backend-badge ' + s.cls;
+        b.querySelector('.bb-text').textContent = s.text;
+        b.title = message ? (s.title ? s.title + ' — ' : '') + message : s.title;
+      };
+      document.addEventListener('alerta:backend', (e) => {
+        const d = (e && e.detail) || {};
+        apply(d.state, d.message);
+        if (d.state === 'cloud') { this.toast('Conectado a la nube', { type: 'ok', em: '☁️', small: true }); setTimeout(() => b.classList.add('mini'), 4000); }
+      });
+      // Si en unos segundos nadie avisó "nube", asumimos modo local.
+      setTimeout(() => { if (b.classList.contains('connecting')) apply('local', 'sin respuesta del backend'); }, 6000);
     }
   };
 

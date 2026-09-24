@@ -123,6 +123,7 @@
 <script type="module" src="assets/firebase-init.js"></script>
 <script>
   AlertaUI.initTheme();
+  AlertaUI.initBackendBadge();
   AlertaData.seedIfEmpty();
   AlertaMap.init({ city: 'bogota' });
   if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#181614">
+<meta name="description" content="Alerta Barrio — consulta y reporta la percepción de riesgo por localidad en Bogotá y Chía. Información ciudadana, clara y localizada para desplazarte mejor.">
+<title>Alerta Barrio · Seguridad y percepción de riesgo en tu comunidad</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📍</text></svg>">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="assets/icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/app.css">
+<script src="assets/ui.js"></script>
+<script src="assets/firebase-config.js"></script>
+</head>
+<body>
+<a href="#features" class="skip-link">Saltar al contenido</a>
+<header class="site">
+  <div class="nav">
+    <a class="brand" href="index.html"><span class="pin">📍</span><b>ALERTA BARRIO</b></a>
+    <nav class="links" aria-label="Principal">
+      <a href="index.html" class="active" aria-current="page">Inicio</a>
+      <a href="alerta-barrio.html">Bogotá</a>
+      <a href="informacion.html">Chía</a>
+      <a href="reportes.html">Reportes en vivo</a>
+      <a href="reportes.html" class="cta">Reportar</a>
+      <button class="theme-toggle" data-theme-toggle aria-label="Cambiar tema">🌙</button>
+    </nav>
+  </div>
+</header>
+<div class="flagbar"><span class="y"></span><span class="r"></span></div>
+
+<!-- HERO -->
+<section class="hero home">
+  <div class="inner">
+    <div>
+      <span class="badge"><span class="d"></span> Proyecto TIC · Design Thinking</span>
+      <h1>Conoce el <span class="hl">riesgo</span> de tu barrio antes de salir.</h1>
+      <p class="lead">Alerta Barrio centraliza la percepción ciudadana de seguridad por localidad en Bogotá y Chía. Consulta el mapa, califica tu zona y reporta lo que ves para que todos tomemos mejores decisiones al desplazarnos.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="alerta-barrio.html">🗺️ Explorar el mapa</a>
+        <a class="btn btn-ghost" href="reportes.html">🚨 Reportar incidente</a>
+      </div>
+      <div class="hero-metrics">
+        <div class="m"><b>20</b><span>Localidades</span></div>
+        <div class="m"><b>9</b><span>Municipios Chía</span></div>
+        <div class="m"><b>100%</b><span>Ciudadano</span></div>
+      </div>
+    </div>
+    <div class="hero-map">
+      <svg viewBox="0 0 1000 720" role="img" aria-label="Vista previa del mapa de localidades de Bogotá" id="heroMap"></svg>
+      <div class="cap">
+        <span>Mapa interactivo de localidades</span>
+        <span class="legend">
+          <span><i style="background:var(--map-yellow)"></i></span>
+          <span><i style="background:var(--map-blue)"></i></span>
+          <span><i style="background:var(--map-red)"></i></span>
+          <span><i style="background:var(--map-cyan)"></i></span>
+        </span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="info-section" id="features">
+  <div class="sec-head">
+    <div class="kicker">Qué puedes hacer</div>
+    <h2>Información localizada y en tiempo real</h2>
+    <p>Una herramienta simple, sin instalaciones ni conexión, para consultar y aportar sobre la seguridad de cada zona.</p>
+  </div>
+  <div class="info-grid">
+    <div class="info-card"><div class="ic ic-r">🗺️</div><h3>Mapa de percepción</h3><p>Localidades de Bogotá y municipios de Chía coloreados según el riesgo percibido por la comunidad.</p></div>
+    <div class="info-card"><div class="ic ic-y">⭐</div><h3>Califica tu zona</h3><p>Asigna una calificación de 1 a 10 al riesgo que percibes y ayuda a construir un panorama colectivo.</p></div>
+    <div class="info-card"><div class="ic ic-c">🚨</div><h3>Reporta en vivo</h3><p>Publica un incidente (robo, acoso, etc.) y aparece al instante en el feed y en el mapa de la zona.</p></div>
+    <div class="info-card"><div class="ic ic-b">📊</div><h3>Ranking de riesgo</h3><p>Consulta las zonas ordenadas de mayor a menor percepción de riesgo de un vistazo.</p></div>
+    <div class="info-card"><div class="ic ic-r">📶</div><h3>Funciona sin conexión</h3><p>Todo corre en tu navegador y se guarda localmente. Listo para conectar a un backend en tiempo real.</p></div>
+    <div class="info-card"><div class="ic ic-c">🏙️</div><h3>Más de una ciudad</h3><p>Explora la percepción de riesgo en Bogotá y en el municipio de Chía y sus vecinos.</p></div>
+  </div>
+</section>
+
+<!-- ÚLTIMOS REPORTES -->
+<section class="info-section">
+  <div class="card">
+    <div class="feed-head">
+      <h2>🔴 Últimos reportes en vivo</h2>
+      <a class="btn-reset" href="reportes.html" style="text-decoration:none;">Ver todos →</a>
+    </div>
+    <ul class="feed" id="homeFeed"></ul>
+    <p class="empty" id="homeFeedEmpty" style="display:none;">Aún no hay reportes.</p>
+  </div>
+</section>
+
+<!-- STEPS -->
+<div class="sec-title"><div class="kicker">Cómo funciona</div><h2>Tres pasos, cero fricción</h2></div>
+<section class="info-section">
+  <div class="steps">
+    <div class="step"><h3>Consulta el mapa</h3><p>Abre Bogotá o Chía y observa cómo cada zona refleja su percepción de riesgo con color.</p></div>
+    <div class="step"><h3>Califica y reporta</h3><p>Toca una zona para calificarla, o publica un reporte en vivo de lo que observaste.</p></div>
+    <div class="step"><h3>Decide mejor</h3><p>El mapa, el ranking y el feed se actualizan al instante para planear mejor tus recorridos.</p></div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section style="padding-top:8px;">
+  <div class="cta-band">
+    <div class="cta-inner">
+      <h2>Empieza a explorar tu ciudad</h2>
+      <p>El mapa interactivo está listo. Consulta el riesgo por zona y aporta tu percepción en segundos.</p>
+      <a class="btn btn-white" href="alerta-barrio.html">🗺️ Abrir el mapa de Bogotá</a>
+    </div>
+  </div>
+  <div class="note"><b>Alcance:</b> Alerta Barrio no pretende resolver la inseguridad, sino centralizar y facilitar el acceso a la información. Los datos son reportados por usuarios y reflejan <b>percepción</b>, no cifras oficiales de criminalidad.</div>
+</section>
+
+<footer>
+  <div class="foot">
+    <a class="brand" href="index.html" style="text-decoration:none;"><span class="pin" style="width:28px;height:28px;font-size:15px;">📍</span><b>ALERTA BARRIO</b></a>
+    <span>Seguridad y percepción de riesgo en las comunidades · Proyecto TIC (Design Thinking)</span>
+  </div>
+</footer>
+
+<a class="fab" href="reportes.html" aria-label="Crear reporte"><span class="fab-em">🚨</span><span class="fab-text">Reportar</span></a>
+
+<script src="assets/data.js"></script>
+<script type="module" src="assets/firebase-init.js"></script>
+<script>
+  AlertaUI.initTheme();
+  AlertaUI.initBackendBadge();
+  if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  // Mini mapa del hero usando la geometría real de Bogotá
+  (function () {
+    AlertaData.seedIfEmpty();
+    const NS = 'http://www.w3.org/2000/svg';
+    const hm = document.getElementById('heroMap');
+    AlertaData.getZones('bogota').forEach(z => {
+      const p = document.createElementNS(NS, 'path');
+      p.setAttribute('d', z.d); p.setAttribute('fill', z.base); p.setAttribute('class', 'm-loc');
+      hm.appendChild(p);
+      if (z.fs >= 12) {
+        const t = document.createElementNS(NS, 'text');
+        t.setAttribute('x', z.cx); t.setAttribute('y', z.cy); t.setAttribute('text-anchor', 'middle');
+        t.setAttribute('dominant-baseline', 'middle'); t.setAttribute('font-size', z.fs);
+        t.setAttribute('font-family', "'Archivo Black',sans-serif"); t.setAttribute('fill', '#fff');
+        t.setAttribute('paint-order', 'stroke'); t.setAttribute('stroke', 'rgba(0,0,0,.45)'); t.setAttribute('stroke-width', '.8');
+        t.textContent = z.name; hm.appendChild(t);
+      }
+    });
+
+    // Últimos reportes en vivo
+    const cities = AlertaData.getCities();
+    function renderHomeFeed() {
+      const feed = document.getElementById('homeFeed');
+      const empty = document.getElementById('homeFeedEmpty');
+      const list = AlertaData.getReports({ limit: 5 });
+      if (!list.length) { feed.innerHTML = ''; empty.style.display = 'block'; return; }
+      empty.style.display = 'none';
+      const esc = s => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
+      feed.innerHTML = list.map(r => {
+        const t = AlertaData.tipoMeta(r.tipo), lv = AlertaData.NIVELES[r.nivel] || AlertaData.NIVELES.medio;
+        const ciudad = cities[r.ciudad] ? cities[r.ciudad].label : '';
+        return `<li class="report" style="border-left-color:${lv.color}">
+          <div class="em">${t.em}</div>
+          <div class="body">
+            <div class="top"><span class="ttl">${t.label}</span><span class="badge-lvl" style="background:${lv.color}">${lv.label}</span></div>
+            <div class="loc">📍 ${esc(r.zona)} · ${esc(ciudad)}</div>
+            ${r.note ? `<p class="note">${esc(r.note)}</p>` : ''}
+            <div class="time">🕒 ${AlertaData.timeAgo(r.ts)}</div>
+          </div>
+        </li>`;
+      }).join('');
+    }
+    AlertaData.subscribe(renderHomeFeed);
+    renderHomeFeed();
+  })();
+</script>
+</body>
+</html>

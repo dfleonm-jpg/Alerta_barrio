@@ -1,0 +1,21 @@
+{
+  "name": "Alerta Barrio",
+  "short_name": "Alerta Barrio",
+  "description": "Consulta y reporta la percepción de riesgo por localidad en Bogotá y Chía.",
+  "start_url": "index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f4f5f2",
+  "theme_color": "#181614",
+  "lang": "es-CO",
+  "categories": ["utilities", "social", "navigation"],
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

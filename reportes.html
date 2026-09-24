@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#181614">
+<meta name="description" content="Alerta Barrio — reporta incidentes en vivo (robo, acoso, etc.) por localidad en Bogotá y Chía y consulta el feed de reportes recientes.">
+<title>Alerta Barrio · Reportes en vivo</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📍</text></svg>">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="assets/icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/app.css">
+<script src="assets/ui.js"></script>
+<script src="assets/firebase-config.js"></script>
+</head>
+<body>
+<a href="#feed" class="skip-link">Saltar al feed</a>
+<header class="site">
+  <div class="nav">
+    <a class="brand" href="index.html"><span class="pin">📍</span><b>ALERTA BARRIO</b></a>
+    <nav class="links" aria-label="Principal">
+      <a href="index.html">Inicio</a>
+      <a href="alerta-barrio.html">Bogotá</a>
+      <a href="informacion.html">Chía</a>
+      <a href="reportes.html" class="active" aria-current="page">Reportes en vivo</a>
+      <button class="theme-toggle" data-theme-toggle aria-label="Cambiar tema">🌙</button>
+    </nav>
+  </div>
+</header>
+<div class="flagbar"><span class="y"></span><span class="r"></span></div>
+
+<section class="hero">
+  <div class="inner">
+    <span class="badge"><span class="live"></span> Reportes ciudadanos en vivo</span>
+    <h1>Reporta un <span class="hl">incidente</span> ahora mismo</h1>
+    <p>¿Viste un robo, un acoso o una zona insegura? Repórtalo en segundos: aparecerá al instante en el feed y recoloreará el mapa de tu localidad.</p>
+  </div>
+</section>
+
+<main>
+  <div class="grid-2">
+    <!-- Formulario -->
+    <div class="card" id="formCard">
+      <h2>➕ Nuevo reporte</h2>
+      <p class="hint">Indica qué pasó, dónde y qué tan grave es. No incluyas datos personales.</p>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="selCiudad">Ciudad</label>
+          <select id="selCiudad"></select>
+        </div>
+        <button type="button" class="geo-btn" id="btnGeo" title="Usar mi ubicación actual">📍 Mi ubicación</button>
+      </div>
+      <p class="geo-note" id="geoNote"></p>
+
+      <div class="field">
+        <label for="selZona">Localidad / municipio</label>
+        <select id="selZona"></select>
+      </div>
+
+      <div class="field">
+        <label>Tipo de incidente</label>
+        <div class="types" id="types"></div>
+      </div>
+
+      <div class="field">
+        <label>Nivel de riesgo</label>
+        <div class="levels" id="levels">
+          <button type="button" class="level-btn" data-level="bajo">Bajo</button>
+          <button type="button" class="level-btn" data-level="medio">Medio</button>
+          <button type="button" class="level-btn" data-level="alto">Alto</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="txtNote">Descripción (opcional)</label>
+        <textarea id="txtNote" maxlength="240" placeholder="Ej.: Dos personas en moto robaron un celular cerca del parque..."></textarea>
+      </div>
+
+      <div class="field">
+        <label>Evidencia (opcional)</label>
+        <div class="photo-field">
+          <img id="photoPreview" class="photo-preview" alt="Vista previa de la foto">
+          <label class="photo-label" for="photoInput">📷 Adjuntar foto</label>
+          <input type="file" id="photoInput" accept="image/*" capture="environment" class="visually-hidden">
+          <button type="button" class="photo-clear" id="photoClear" style="display:none;">Quitar</button>
+        </div>
+      </div>
+
+      <div class="check-row">
+        <input type="checkbox" id="chkAnon">
+        <label for="chkAnon" style="margin:0;">Publicar como anónimo</label>
+      </div>
+      <div class="field" id="aliasField">
+        <label for="aliasInput">Alias (opcional, visible)</label>
+        <input type="text" id="aliasInput" maxlength="40" placeholder="Ej.: Vecino de Suba">
+      </div>
+
+      <button class="submit" id="btnSubmit">🚨 Publicar reporte</button>
+      <div class="formmsg" id="formMsg" role="status" aria-live="polite"></div>
+    </div>
+
+    <!-- Feed -->
+    <div class="card">
+      <div class="feed-head">
+        <h2>🔴 Feed en vivo</h2>
+        <button class="btn-reset" id="btnReset" title="Borrar todos los reportes">Limpiar</button>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-box"><b id="stTotal">0</b><span>Reportes</span></div>
+        <div class="stat-box"><b id="stHoy">0</b><span>Hoy</span></div>
+        <div class="stat-box"><b id="stAltos">0</b><span>Nivel alto</span></div>
+      </div>
+
+      <div class="feed-filters" id="filters" role="tablist" aria-label="Filtrar por tipo">
+        <button class="chip active" data-f="todos">Todos</button>
+        <button class="chip" data-f="robo">🚨 Robo</button>
+        <button class="chip" data-f="acoso">⚠️ Acoso</button>
+        <button class="chip" data-f="violencia">🆘 Violencia</button>
+        <button class="chip" data-f="iluminacion">💡 Iluminación</button>
+        <button class="chip" data-f="sospechoso">👁️ Sospechoso</button>
+        <button class="chip" data-f="otro">❔ Otro</button>
+      </div>
+
+      <div class="filter-group">
+        <label for="filterFecha">Fecha:</label>
+        <select id="filterFecha">
+          <option value="todos">Todas</option>
+          <option value="24h">Últimas 24 h</option>
+          <option value="7d">Última semana</option>
+        </select>
+        <label for="filterEstado">Estado:</label>
+        <select id="filterEstado">
+          <option value="todos">Todos</option>
+          <option value="pendiente">Pendientes</option>
+          <option value="resuelto">Resueltos</option>
+        </select>
+      </div>
+
+      <ul class="feed" id="feed" aria-live="polite"></ul>
+      <p class="empty" id="feedEmpty">Aún no hay reportes. ¡Sé el primero en reportar!</p>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="foot">
+    <a class="brand" href="index.html" style="text-decoration:none;"><span class="pin" style="width:28px;height:28px;font-size:15px;">📍</span><b>ALERTA BARRIO</b></a>
+    <span>Los reportes son ciudadanos y reflejan percepción; no son cifras oficiales. Se “archivan” tras 72 h y se guardan localmente en tu navegador.</span>
+  </div>
+</footer>
+
+<a class="fab" href="#formCard" aria-label="Ir al formulario de reporte"><span class="fab-em">🚨</span><span class="fab-text">Reportar</span></a>
+
+<script src="assets/data.js"></script>
+<script src="assets/report.js"></script>
+<script type="module" src="assets/firebase-init.js"></script>
+<script>
+  AlertaUI.initTheme();
+  AlertaUI.initBackendBadge();
+  AlertaReport.init();
+  if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+</script>
+</body>
+</html>
